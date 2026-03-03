@@ -3,12 +3,22 @@ import http from "http";
 import { env } from "./config/env";
 import { logger } from "./config/logger";
 import { buildApp } from "./app";
+import { connectDatabase, disconnectDatabase } from "./config/database";
 
 const app = buildApp();
 const server = http.createServer(app);
 
-server.listen(env.PORT, () => {
-  logger.info({ port: env.PORT }, `Hospital Intranet API running on :${env.PORT}`);
+async function bootstrap() {
+  await connectDatabase();
+
+  server.listen(env.PORT, () => {
+    logger.info({ port: env.PORT }, `Hospital Intranet API running on :${env.PORT}`);
+  });
+}
+
+bootstrap().catch((err: unknown) => {
+  logger.fatal({ err }, "Failed to start server");
+  process.exit(1);
 });
 
 function shutdown(signal: string) {
@@ -19,7 +29,12 @@ function shutdown(signal: string) {
       process.exit(1);
       return;
     }
-    process.exit(0);
+    disconnectDatabase()
+      .then(() => process.exit(0))
+      .catch((dbErr: unknown) => {
+        logger.error({ err: dbErr }, "Error disconnecting database");
+        process.exit(1);
+      });
   });
 }
 

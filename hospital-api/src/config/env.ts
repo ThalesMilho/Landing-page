@@ -14,6 +14,16 @@ const envSchema = z.object({
 
   ALLOWED_ORIGIN: z.string().min(1),
 
+  DATABASE_URL: z.string().url({ message: "DATABASE_URL must be a valid URL" }),
+
+  UPLOAD_DIR: z.string().default("uploads"),
+
+  MAX_FILE_SIZE_MB: z
+    .string()
+    .default("20")
+    .transform(Number)
+    .pipe(z.number().positive()),
+
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(15 * 60 * 1000),
   RATE_LIMIT_MAX: z.coerce.number().int().positive().default(200),
 

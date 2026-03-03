@@ -14,6 +14,7 @@ export type AzureAdJwtClaims = {
   name?: string;
   given_name?: string;
   family_name?: string;
+  department?: string;
   roles?: string[];
   groups?: string[];
 };

@@ -5,3 +5,8 @@ dist/
 *.log
 .DS_Store
 .vscode/
+
+/src/generated/prisma
+
+uploads/
+prisma/migrations/
