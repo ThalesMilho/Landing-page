@@ -54,21 +54,45 @@ function useBreakpoint() {
 }
 
 // ══════════════════════════════════════════════════════════════
-// 3. STATIC USER SESSION
-//    In production: replace CURRENT_USER with the object returned
-//    from GET /api/v1/me after real MSAL Azure AD authentication.
+// 3. ROLE SYSTEM + USER SESSION
+//
+//  In production: CURRENT_USER comes from GET /api/v1/me (Azure AD).
+//  Roles are assigned in Azure Portal → App Registration → App Roles
+//  and attached to the JWT token automatically.
+//
+//  Role hierarchy:
+//    "Intranet.User"            → all authenticated staff  (read-only)
+//    "Intranet.RH.Manager"      → RH leader                (upload to RH)
+//    "Intranet.Quality.Manager" → Quality leader            (upload to Quality)
+//    "Intranet.IT"              → IT team                   (upload to IT/Suporte)
+//    "Intranet.Admin"           → IT admins only            (admin panel + all above)
+//
+//  ▼ Change the roles array below to test different access levels ▼
 // ══════════════════════════════════════════════════════════════
 const CURRENT_USER = {
-  displayName: "Dr. Marcelo Silva",
-  givenName:   "Marcelo",
+  displayName: "Dr. Carlos Silva",
+  givenName:   "Carlos",
   surname:     "Silva",
   jobTitle:    "Médico Clínico",
   department:  "Clínica Geral",
   mail:        "dr.silva@hospital.com",
   initials:    "CS",
-  groups:      ["Medicos", "Intranet_Users"],
   avatarColor: "linear-gradient(135deg,#1a56db,#60a5fa)",
-  isAdmin:     true,
+
+  // ── Swap roles to test different users: ──────────────────────
+  roles: ["Intranet.User"],
+  // roles: ["Intranet.User", "Intranet.RH.Manager"],
+  // roles: ["Intranet.User", "Intranet.Quality.Manager"],
+  // roles: ["Intranet.User", "Intranet.IT"],
+  // roles: ["Intranet.User", "Intranet.IT", "Intranet.Admin"],
+};
+
+// ── Permission helpers (single source of truth) ───────────────
+const can = {
+  editRH:      CURRENT_USER.roles.includes("Intranet.RH.Manager")      || CURRENT_USER.roles.includes("Intranet.Admin"),
+  editQuality: CURRENT_USER.roles.includes("Intranet.Quality.Manager") || CURRENT_USER.roles.includes("Intranet.Admin"),
+  editIT:      CURRENT_USER.roles.includes("Intranet.IT")               || CURRENT_USER.roles.includes("Intranet.Admin"),
+  admin:       CURRENT_USER.roles.includes("Intranet.Admin"),
 };
 
 // ══════════════════════════════════════════════════════════════
@@ -191,7 +215,6 @@ const LogoMark = ({ size=36 }) => (
 // ══════════════════════════════════════════════════════════════
 function Header({ page, navigate }) {
   const user = CURRENT_USER;
-  const isAdmin = CURRENT_USER.isAdmin;
   const { isMobile, isXs, w }     = useBreakpoint();
   const [open, setOpen]   = useState(false);
   const [uMenu, setUMenu] = useState(false);
@@ -204,7 +227,6 @@ function Header({ page, navigate }) {
     { label:"Recursos Humanos",      p:"rh" },
     { label:"Catálogo de Ramais",    p:"ramais" },
     { label:"Suporte T.I.",          p:"suporte", external:"http://ares/front/central.php" },
-    ...(isAdmin ? [{ label:"Painel Admin", p:"admin" }] : []),
   ];
 
   const h = w < 640 ? 54 : 60;
@@ -503,7 +525,7 @@ function SearchBar() {
 // ══════════════════════════════════════════════════════════════
 // 12. DASHBOARD CARD
 // ══════════════════════════════════════════════════════════════
-function DashboardCard({ icon, iconBg, iconColor, title, desc, onClick }) {
+function DashboardCard({ icon, iconBg, iconColor, title, desc, onClick, canManage }) {
   return (
     <div className="dash-card" onClick={onClick} role="button" tabIndex={0}
       onKeyDown={e => e.key==="Enter" && onClick?.()}
@@ -525,8 +547,17 @@ function DashboardCard({ icon, iconBg, iconColor, title, desc, onClick }) {
           {icon}
         </div>
         <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontSize:14, fontWeight:700, color:T.dark, lineHeight:1.3, letterSpacing:"-0.01em" }}>
-            {title}
+          <div style={{ display:"flex", alignItems:"center", gap:7, flexWrap:"wrap" }}>
+            <span style={{ fontSize:14, fontWeight:700, color:T.dark, lineHeight:1.3, letterSpacing:"-0.01em" }}>
+              {title}
+            </span>
+            {canManage && (
+              <span style={{
+                fontSize:9, fontWeight:700, letterSpacing:"0.07em",
+                textTransform:"uppercase", padding:"2px 7px", borderRadius:20,
+                background:"#fef3c7", color:"#92400e", whiteSpace:"nowrap",
+              }}>Gestor</span>
+            )}
           </div>
           <div style={{ fontSize:12, color:T.muted, marginTop:5, lineHeight:1.55 }}>
             {desc}
@@ -539,7 +570,7 @@ function DashboardCard({ icon, iconBg, iconColor, title, desc, onClick }) {
         background:"none", border:"none", cursor:"pointer", padding:0,
         transition:"color 0.15s",
       }}>
-        Acessar <ICONS.ArrowR s={13}/>
+        {canManage ? "Gerenciar" : "Visualizar"} <ICONS.ArrowR s={13}/>
       </button>
     </div>
   );
@@ -641,15 +672,22 @@ function Sidebar() {
 // 14. CARDS DATA
 // ══════════════════════════════════════════════════════════════
 const CARDS = [
-
-  { page:"rh",        icon:<ICONS.Users s={20}/>,    iconBg:"#f5f3ff", iconColor:"#7c3aed",
-    title:"Recursos Humanos",     desc:"Benefícios, férias, folha de pagamento e documentos institucionais." },
-  { page:"qualidade", icon:<ICONS.Clip s={20}/>,     iconBg:"#f0fdf4", iconColor:"#16a34a",
-    title:"Qualidade e Segurança",desc:"Protocolos clínicos, indicadores de qualidade e relatórios de incidentes." },
-  { page:"ramais",    icon:<ICONS.Phone s={20}/>,    iconBg:"#fff7ed", iconColor:"#ea580c",
-    title:"Catálogo de Ramais",   desc:"Ramais internos, setores, bips e contatos de emergência." },
-  { page:"suporte",   icon:<ICONS.Wrench s={20}/>,   iconBg:"#f8fafc", iconColor:"#475569",
-    title:"Suporte T.I.",         desc:"Abertura de chamados técnicos, sistemas e infraestrutura." },
+  { page:"rh",        icon:<ICONS.Users s={20}/>,  iconBg:"#f5f3ff", iconColor:"#7c3aed",
+    title:"Recursos Humanos",
+    desc:"Documentos, benefícios, férias e folha de pagamento.",
+    canManage: can.editRH },
+  { page:"qualidade", icon:<ICONS.Clip s={20}/>,   iconBg:"#f0fdf4", iconColor:"#16a34a",
+    title:"Qualidade e Segurança",
+    desc:"Protocolos clínicos, indicadores e notificações de eventos.",
+    canManage: can.editQuality },
+  { page:"ramais",    icon:<ICONS.Phone s={20}/>,  iconBg:"#fff7ed", iconColor:"#ea580c",
+    title:"Catálogo de Ramais",
+    desc:"Ramais internos, setores, bips e contatos de emergência.",
+    canManage: false },
+  { page:"suporte",   icon:<ICONS.Wrench s={20}/>, iconBg:"#f8fafc", iconColor:"#475569",
+    title:"Suporte T.I.",
+    desc:"Abertura de chamados técnicos e suporte de infraestrutura.",
+    canManage: can.editIT },
 ];
 
 // ══════════════════════════════════════════════════════════════
@@ -780,9 +818,28 @@ function Home({ navigate }) {
         <span style={{ fontSize:11, color:T.faint }}>
           © 2025 Hospital Central · Intranet v3.0
         </span>
-        <span style={{ fontSize:11, color:T.faint }}>
-          Autenticado via AD · {user?.department}
-        </span>
+        <div style={{ display:"flex", alignItems:"center", gap:16 }}>
+          <span style={{ fontSize:11, color:T.faint }}>
+            Autenticado via AD · {user?.department}
+          </span>
+          {/* Admin link — only rendered for Intranet.Admin group, invisible to others */}
+          {can.admin && (
+            <button onClick={() => navigate("admin")} style={{
+              fontSize:11, color:T.faint, background:"none", border:"none",
+              cursor:"pointer", display:"flex", alignItems:"center", gap:4,
+              transition:"color 0.15s", padding:0,
+            }}
+              onMouseEnter={e => e.currentTarget.style.color=T.mid}
+              onMouseLeave={e => e.currentTarget.style.color=T.faint}
+              title="Painel Administrativo"
+            >
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+              Administração
+            </button>
+          )}
+        </div>
       </div>
     </main>
   );
@@ -1249,332 +1306,272 @@ const Si = ({ d, s=15 }) => (
 );
 
 // ══════════════════════════════════════════════════════════════
-// 17. MODULE PAGES
+// 17. MODULE PAGES  (view-only for all / upload only for managers)
 // ══════════════════════════════════════════════════════════════
 
-function RHPage({ navigate }) {
-  return (
-    <UploadModulePage
-      navigate={navigate}
-      moduleKey="rh"
-      title="Recursos Humanos"
-      icon={<ICONS.Users s={24}/>}
-      accentColor="#7c3aed"
-      accentBg="#f5f3ff"
-      categories={[
-        { key:"ferias",     label:"Férias",             icon:<Si d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>,
-          desc:"Envie formulários de solicitação de férias e documentos de aprovação." },
-        { key:"docs",       label:"Documentos Pessoais",icon:<Si d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8"/>,
-          desc:"CPF, RG, comprovante de residência, certificados, diplomas." },
-        { key:"folha",      label:"Folha de Pagamento", icon:<Si d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>,
-          desc:"Holerites, comprovantes de pagamento e ajustes salariais." },
-        { key:"beneficios", label:"Benefícios",         icon:<Si d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>,
-          desc:"Plano de saúde, vale-transporte, vale-alimentação e outros benefícios." },
-      ]}
-    />
-  );
-}
+// ── Simulated document library per module ────────────────────
+const MOCK_DOCS = {
+  rh: [
+    { id:1, name:"Política de Benefícios 2025.pdf",        size:245000, cat:"Benefícios",         date:"10/01/2025", author:"RH" },
+    { id:2, name:"Guia de Férias — Como Solicitar.pdf",    size:182000, cat:"Férias",              date:"03/03/2025", author:"RH" },
+    { id:3, name:"Holerite Modelo — Jan 2025.pdf",         size:98000,  cat:"Folha de Pagamento",  date:"05/02/2025", author:"RH" },
+    { id:4, name:"Regulamento Interno Atualizado.docx",    size:310000, cat:"Documentos Gerais",   date:"15/01/2025", author:"RH" },
+    { id:5, name:"Vale-Transporte — Formulário.pdf",       size:76000,  cat:"Benefícios",          date:"20/02/2025", author:"RH" },
+  ],
+  qualidade: [
+    { id:1, name:"Protocolo Sepse v4.2.pdf",               size:520000, cat:"Protocolos",          date:"01/02/2025", author:"Qualidade" },
+    { id:2, name:"Indicadores Março 2025.xlsx",            size:145000, cat:"Indicadores",         date:"01/04/2025", author:"Qualidade" },
+    { id:3, name:"Notificação Evento Adverso — Modelo.pdf",size:88000,  cat:"Eventos",             date:"12/03/2025", author:"Qualidade" },
+    { id:4, name:"Checklist Auditoria Leitos.docx",        size:210000, cat:"Auditorias",          date:"18/02/2025", author:"Qualidade" },
+    { id:5, name:"Protocolo Higienização Mãos v3.pdf",     size:340000, cat:"Protocolos",          date:"05/01/2025", author:"Qualidade" },
+  ],
+  suporte: [
+    { id:1, name:"Manual VPN Hospital.pdf",                size:430000, cat:"Infraestrutura",      date:"10/12/2024", author:"T.I." },
+    { id:2, name:"Formulário Solicitação de Acesso.docx",  size:65000,  cat:"Acessos",             date:"02/01/2025", author:"T.I." },
+    { id:3, name:"Política de Segurança da Informação.pdf",size:620000, cat:"Segurança",           date:"15/01/2025", author:"T.I." },
+    { id:4, name:"Guia Impressoras — Configuração.pdf",    size:195000, cat:"Equipamentos",        date:"20/02/2025", author:"T.I." },
+  ],
+};
 
-function SuportePage({ navigate }) {
-  return (
-    <UploadModulePage
-      navigate={navigate}
-      moduleKey="suporte"
-      title="Suporte T.I."
-      icon={<ICONS.Wrench s={24}/>}
-      accentColor="#475569"
-      accentBg="#f8fafc"
-      categories={[
-        { key:"chamado",    label:"Abrir Chamado",      icon:<Si d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>,
-          desc:"Anexe capturas de tela, logs ou arquivos que descrevam o problema." },
-        { key:"sistema",    label:"Acesso a Sistemas",  icon:<Si d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>,
-          desc:"Formulários de solicitação de acesso a sistemas internos." },
-        { key:"equipamento",label:"Equipamentos",       icon:<Si d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 0-2-2V9m0 0h18"/>,
-          desc:"Nota fiscal, termo de responsabilidade e fotos de equipamentos." },
-        { key:"seguranca",  label:"Segurança / Incidente",icon:<Si d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"/>,
-          desc:"Reporte incidentes de segurança com evidências em arquivo." },
-      ]}
-    />
-  );
-}
-
-function QualidadePage({ navigate }) {
-  return (
-    <UploadModulePage
-      navigate={navigate}
-      moduleKey="qualidade"
-      title="Qualidade e Segurança"
-      icon={<ICONS.Clip s={24}/>}
-      accentColor="#16a34a"
-      accentBg="#f0fdf4"
-      categories={[
-        { key:"protocolo",  label:"Protocolos",         icon:<Si d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"/>,
-          desc:"Envie novos protocolos clínicos ou atualizações de protocolos vigentes." },
-        { key:"indicador",  label:"Indicadores",        icon:<Si d="M18 20V10M12 20V4M6 20v-6"/>,
-          desc:"Planilhas de indicadores de qualidade, metas e resultados." },
-        { key:"incidente",  label:"Notificação de Evento",icon:<Si d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"/>,
-          desc:"Formulários de notificação de eventos adversos e near misses." },
-        { key:"auditoria",  label:"Auditorias",         icon:<Si d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>,
-          desc:"Relatórios de auditoria interna, checklists e planos de ação." },
-      ]}
-    />
-  );
-}
-
-// ══════════════════════════════════════════════════════════════
-// 18. ADMIN PANEL
-// ══════════════════════════════════════════════════════════════
-
-const ADMIN_MODULES = [
-  {
-    key: "qualidade-admin",
-    label: "Qualidade e Segurança",
-    icon: <ICONS.Clip s={20}/>,
-    color: "#16a34a",
-    bg: "#f0fdf4",
-    border: "#bbf7d0",
-    desc: "Gestão de documentos da qualidade, protocolos e indicadores.",
-    submenus: [
-      { key:"rqs",       label:"RQS",                icon:<Si d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"/>,
-        desc:"Registros de Qualidade e Segurança — envie e gerencie os RQS do hospital." },
-      { key:"pops",      label:"POPs",               icon:<Si d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8"/>,
-        desc:"Procedimentos Operacionais Padrão — upload de POPs atualizados e revisados." },
-      { key:"indicadores",label:"Indicadores",       icon:<Si d="M18 20V10M12 20V4M6 20v-6"/>,
-        desc:"Planilhas de indicadores de qualidade, metas e dashboards de resultado." },
-      { key:"protocolos",label:"Protocolos Clínicos",icon:<Si d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>,
-        desc:"Protocolos assistenciais — versões vigentes e em revisão." },
-      { key:"incidentes",label:"Eventos & Incidentes",icon:<Si d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"/>,
-        desc:"Notificações de eventos adversos, near misses e planos de ação." },
-    ],
-  },
-  {
-    key: "rh-admin",
-    label: "Recursos Humanos",
-    icon: <ICONS.Users s={20}/>,
-    color: "#7c3aed",
-    bg: "#f5f3ff",
-    border: "#ddd6fe",
-    desc: "Gestão de documentos e processos de RH.",
-    submenus: [
-      { key:"contratos",  label:"Contratos",          icon:<Si d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6"/>,
-        desc:"Contratos de trabalho, aditivos e documentos admissionais." },
-      { key:"ferias-adm", label:"Férias & Escalas",   icon:<Si d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>,
-        desc:"Planejamento de férias, planilhas de escala e aprovações." },
-      { key:"treinamentos",label:"Treinamentos",      icon:<Si d="M22 10v6M2 10l10-5 10 5-10 5z"/>,
-        desc:"Certificados, listas de presença e materiais de treinamento." },
-      { key:"docs-rh",   label:"Documentos Gerais",   icon:<Si d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>,
-        desc:"Circulares, comunicados internos e políticas da empresa." },
-    ],
-  },
-];
-
-function AdminPanel({ navigate }) {
+// ── Read-only document list ───────────────────────────────────
+function DocList({ docs }) {
   const { w } = useBreakpoint();
-  const [activeModule, setActiveModule] = useState(ADMIN_MODULES[0].key);
-  const [activeSubmenu, setActiveSubmenu] = useState(ADMIN_MODULES[0].submenus[0].key);
-  const [uploadedFiles, setUploadedFiles] = useState({});
+  if (!docs || docs.length === 0) return (
+    <div style={{ textAlign:"center", padding:"32px 0", color:T.faint, fontSize:13 }}>
+      Nenhum documento disponível.
+    </div>
+  );
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+      {docs.map(doc => {
+        const ic = getFileIcon(doc.name);
+        return (
+          <div key={doc.id} style={{
+            background:T.white, borderRadius:10,
+            border:`1px solid ${T.border}`,
+            padding:"11px 14px",
+            display:"flex", alignItems:"center", gap:12,
+            boxShadow:"0 1px 3px rgba(0,0,0,0.04)",
+          }}>
+            <div style={{
+              width:36, height:36, borderRadius:8, flexShrink:0,
+              background:ic.bg, color:ic.color,
+              display:"flex", alignItems:"center", justifyContent:"center",
+              fontSize:9, fontWeight:700, letterSpacing:"0.04em",
+            }}>{ic.label}</div>
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ fontSize:13, fontWeight:600, color:T.dark,
+                whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+                {doc.name}
+              </div>
+              <div style={{ fontSize:11, color:T.faint, marginTop:3 }}>
+                {doc.cat} · {formatBytes(doc.size)} · {doc.date}
+              </div>
+            </div>
+            <button style={{
+              display:"flex", alignItems:"center", gap:5,
+              padding:"6px 12px", borderRadius:7, flexShrink:0,
+              background:T.blueLight, color:T.blue,
+              border:"none", cursor:"pointer", fontSize:12, fontWeight:600,
+              transition:"opacity 0.15s",
+            }}
+              onMouseEnter={e => e.currentTarget.style.opacity="0.7"}
+              onMouseLeave={e => e.currentTarget.style.opacity="1"}
+              title="Baixar documento"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+              </svg>
+              {w >= 480 ? "Baixar" : ""}
+            </button>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
-  const currentModule = ADMIN_MODULES.find(m => m.key === activeModule);
-  const currentSubmenu = currentModule?.submenus.find(s => s.key === activeSubmenu);
+// ── Shared module page shell ──────────────────────────────────
+function ModulePage({ navigate, moduleKey, title, icon, accentColor, accentBg, tabs, canEdit }) {
+  const { w, isDesktop } = useBreakpoint();
+  const [activeTab, setActiveTab]           = useState(tabs[0]?.key);
+  const [uploadedFiles, setUploadedFiles]   = useState([]);
+  const [showUpload, setShowUpload]         = useState(false);
 
-  const filesForSub = uploadedFiles[`${activeModule}__${activeSubmenu}`] || [];
-  const setFilesForSub = (updater) => {
-    setUploadedFiles(prev => {
-      const key = `${activeModule}__${activeSubmenu}`;
-      const current = prev[key] || [];
-      const next = typeof updater === "function" ? updater(current) : updater;
-      return { ...prev, [key]: next };
-    });
-  };
-
-  const totalDone = Object.values(uploadedFiles).flat().filter(f => f.status === "done").length;
-
-  // map module key to upload config key
-  const uploadKey = activeModule === "qualidade-admin" ? "qualidade" : "rh";
+  const currentTab   = tabs.find(t => t.key === activeTab);
+  const tabDocs      = (MOCK_DOCS[moduleKey] || []).filter(d => !currentTab?.docCat || d.cat === currentTab.docCat);
+  const pendingCount = uploadedFiles.filter(f => f.status === "done" && f.tab === activeTab).length;
 
   return (
     <div className="fade-up" style={{ minHeight:"calc(100vh - 60px)", background:T.canvas }}>
       <div style={{
-        maxWidth:1100, margin:"0 auto",
-        padding: w < 480 ? "20px 14px 52px" : w < 768 ? "28px 20px 56px" : "36px 32px 64px",
+        maxWidth:1000, margin:"0 auto",
+        padding: w < 480 ? "22px 14px 52px" : w < 768 ? "28px 20px 56px" : "40px 32px 64px",
       }}>
 
-        {/* ── Header ── */}
+        {/* ── Page header ── */}
         <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:16, marginBottom:24, flexWrap:"wrap" }}>
           <div style={{ display:"flex", alignItems:"center", gap:14 }}>
             <div style={{
-              width:46, height:46, borderRadius:12,
-              background:"linear-gradient(135deg,#1a56db,#7c3aed)",
-              display:"flex", alignItems:"center", justifyContent:"center",
-              color:"#fff", flexShrink:0,
-              boxShadow:"0 4px 12px rgba(26,86,219,0.3)",
-            }}>
-              <ICONS.Shield s={22}/>
-            </div>
+              width:46, height:46, borderRadius:12, background:accentBg, flexShrink:0,
+              display:"flex", alignItems:"center", justifyContent:"center", color:accentColor,
+            }}>{icon}</div>
             <div>
-              <h1 style={{ fontSize: w<480?18:22, fontWeight:800, color:T.dark, letterSpacing:"-0.02em" }}>
-                Painel Administrativo
-              </h1>
-              <div style={{ fontSize:12, color:T.muted, marginTop:3 }}>
-                Gestão de documentos · {CURRENT_USER.displayName}
-                {totalDone > 0 && <span style={{ color:"#16a34a", fontWeight:600, marginLeft:8 }}>· {totalDone} arquivo{totalDone>1?"s":""} enviado{totalDone>1?"s":""}</span>}
+              <div style={{ display:"flex", alignItems:"center", gap:9 }}>
+                <h1 style={{ fontSize: w<480?18:21, fontWeight:800, color:T.dark, letterSpacing:"-0.02em" }}>
+                  {title}
+                </h1>
+                {canEdit && (
+                  <span style={{
+                    fontSize:9, fontWeight:700, letterSpacing:"0.08em",
+                    textTransform:"uppercase", padding:"3px 8px", borderRadius:20,
+                    background:"#fef3c7", color:"#92400e",
+                  }}>Gestor</span>
+                )}
+              </div>
+              <div style={{ fontSize:12, color:T.muted, marginTop:2 }}>
+                {canEdit ? "Acesso de gestão — visualize e publique documentos" : "Acesso de visualização — leitura e download"}
               </div>
             </div>
           </div>
-          <button onClick={() => navigate("home")} style={{
-            display:"inline-flex", alignItems:"center", gap:7,
-            padding:"8px 16px", borderRadius:9,
-            background:T.white, border:`1px solid ${T.border}`,
-            fontSize:13, fontWeight:600, color:T.mid, cursor:"pointer",
-            transition:"all 0.15s", flexShrink:0,
-          }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor=T.blue; e.currentTarget.style.color=T.blue; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor=T.border; e.currentTarget.style.color=T.mid; }}
-          >
-            <ICONS.ArrowL s={13}/> Início
-          </button>
+          <div style={{ display:"flex", gap:8, flexShrink:0 }}>
+            {canEdit && (
+              <button onClick={() => setShowUpload(v => !v)} style={{
+                display:"inline-flex", alignItems:"center", gap:7,
+                padding:"9px 16px", borderRadius:9,
+                background: showUpload ? accentColor : accentBg,
+                border:`1.5px solid ${accentColor}`,
+                color: showUpload ? "#fff" : accentColor,
+                fontSize:13, fontWeight:600, cursor:"pointer", transition:"all 0.18s",
+              }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  {showUpload
+                    ? <><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>
+                    : <><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></>
+                  }
+                </svg>
+                {showUpload ? "Cancelar" : "Publicar Documento"}
+              </button>
+            )}
+            <button onClick={() => navigate("home")} style={{
+              display:"inline-flex", alignItems:"center", gap:7,
+              padding:"9px 16px", borderRadius:9,
+              background:T.white, border:`1px solid ${T.border}`,
+              fontSize:13, fontWeight:600, color:T.mid, cursor:"pointer",
+              transition:"all 0.15s",
+            }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor=T.blue; e.currentTarget.style.color=T.blue; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor=T.border; e.currentTarget.style.color=T.mid; }}
+            >
+              <ICONS.ArrowL s={13}/> Início
+            </button>
+          </div>
         </div>
 
-        {/* ── AD badge ── */}
-        <div style={{
-          display:"flex", alignItems:"center", gap:8, flexWrap:"wrap",
-          padding:"9px 14px", borderRadius:9,
-          background:"#f0fdf4", border:"1px solid #bbf7d0", marginBottom:22,
-        }}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-          </svg>
-          <span style={{ fontSize:12, color:"#15803d", fontWeight:600 }}>Acesso Admin verificado via Azure AD</span>
-          <span style={{ fontSize:12, color:"#16a34a" }}>· {CURRENT_USER.mail}</span>
-        </div>
-
-        {/* ── Three-column layout: module selector | submenu | upload ── */}
-        <div style={{
-          display:"flex",
-          flexDirection: w >= 900 ? "row" : "column",
-          gap:16, alignItems:"flex-start",
-        }}>
-
-          {/* Column 1 — Module selector */}
-          <div style={{ width: w >= 900 ? 180 : "100%", flexShrink:0 }}>
-            <div style={{
-              background:T.white, borderRadius:12, border:`1px solid ${T.border}`,
-              overflow:"hidden", boxShadow:"0 1px 3px rgba(0,0,0,0.05)",
-            }}>
-              <div style={{ padding:"10px 12px 6px", fontSize:10, fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase", color:T.faint }}>
-                Módulos
+        {/* ── Upload panel (managers only, toggleable) ── */}
+        {canEdit && showUpload && (
+          <div className="slide-dn" style={{
+            background:T.white, borderRadius:12,
+            border:`1.5px solid ${accentColor}33`,
+            padding: w < 480 ? "18px 16px" : "22px 24px",
+            marginBottom:20,
+            boxShadow:`0 4px 16px ${accentColor}14`,
+          }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:16 }}>
+              <div style={{
+                width:8, height:8, borderRadius:"50%",
+                background:accentColor, flexShrink:0,
+              }}/>
+              <span style={{ fontSize:13, fontWeight:700, color:T.dark }}>
+                Publicar em: <span style={{ color:accentColor }}>{currentTab?.label}</span>
+              </span>
+              <span style={{ fontSize:11, color:T.muted, marginLeft:4 }}>
+                · Assinado como {CURRENT_USER.displayName}
+              </span>
+            </div>
+            <FileUploadZone
+              moduleKey={moduleKey}
+              uploadedFiles={uploadedFiles.filter(f => f.tab === activeTab)}
+              setUploadedFiles={(updater) => {
+                setUploadedFiles(prev => {
+                  const updated = typeof updater === "function" ? updater(prev) : updater;
+                  // tag each new file with its tab
+                  return updated.map(f => f.tab ? f : { ...f, tab: activeTab });
+                });
+              }}
+            />
+            {pendingCount > 0 && (
+              <div style={{ marginTop:14, paddingTop:14, borderTop:`1px solid ${T.border}`, display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
+                <button style={{
+                  display:"inline-flex", alignItems:"center", gap:7,
+                  padding:"10px 22px", borderRadius:9,
+                  background:accentColor, color:"#fff",
+                  fontSize:13, fontWeight:600, border:"none", cursor:"pointer",
+                  transition:"opacity 0.15s",
+                }}
+                  onMouseEnter={e => e.currentTarget.style.opacity="0.8"}
+                  onMouseLeave={e => e.currentTarget.style.opacity="1"}
+                  onClick={() => setShowUpload(false)}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  Confirmar Publicação ({pendingCount})
+                </button>
+                <span style={{ fontSize:12, color:T.muted }}>
+                  Registrado com assinatura AD.
+                </span>
               </div>
-              {ADMIN_MODULES.map(mod => {
-                const active = activeModule === mod.key;
+            )}
+          </div>
+        )}
+
+        {/* ── Two-column layout ── */}
+        <div style={{ display:"flex", flexDirection: isDesktop ? "row" : "column", gap:18, alignItems:"flex-start" }}>
+
+          {/* Tabs sidebar */}
+          <div style={{ width: isDesktop ? 200 : "100%", flexShrink:0 }}>
+            <div style={{ background:T.white, borderRadius:12, border:`1px solid ${T.border}`, overflow:"hidden", boxShadow:"0 1px 3px rgba(0,0,0,0.04)" }}>
+              <div style={{ padding:"10px 12px 6px", fontSize:10, fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase", color:T.faint }}>
+                Categorias
+              </div>
+              {tabs.map(tab => {
+                const active = activeTab === tab.key;
+                const tabCount = (MOCK_DOCS[moduleKey]||[]).filter(d => !tab.docCat || d.cat === tab.docCat).length;
                 return (
-                  <button key={mod.key} onClick={() => { setActiveModule(mod.key); setActiveSubmenu(mod.submenus[0].key); }} style={{
-                    display:"flex", alignItems:"center", gap:10,
+                  <button key={tab.key} onClick={() => { setActiveTab(tab.key); setShowUpload(false); }} style={{
+                    display:"flex", alignItems:"center", justifyContent:"space-between",
                     width:"100%", padding:"11px 14px",
-                    background: active ? mod.bg : "none",
+                    background: active ? accentBg : "none",
                     border:"none", cursor:"pointer", textAlign:"left",
-                    borderLeft:`3px solid ${active ? mod.color : "transparent"}`,
+                    borderLeft:`3px solid ${active ? accentColor : "transparent"}`,
                     transition:"all 0.15s",
                   }}>
-                    <span style={{ color: active ? mod.color : T.muted, display:"flex", flexShrink:0 }}>{mod.icon}</span>
-                    <span style={{ fontSize:13, fontWeight: active ? 700 : 500, color: active ? mod.color : T.mid, lineHeight:1.3 }}>
-                      {mod.label}
-                    </span>
+                    <div style={{ display:"flex", alignItems:"center", gap:9 }}>
+                      <span style={{ color: active ? accentColor : T.muted, display:"flex", flexShrink:0 }}>{tab.icon}</span>
+                      <span style={{ fontSize:13, fontWeight: active ? 600 : 500, color: active ? accentColor : T.mid }}>
+                        {tab.label}
+                      </span>
+                    </div>
+                    <span style={{
+                      fontSize:10, fontWeight:700, padding:"1px 6px", borderRadius:10,
+                      background: active ? accentColor+"22" : T.borderLight,
+                      color: active ? accentColor : T.faint,
+                    }}>{tabCount}</span>
                   </button>
                 );
               })}
             </div>
           </div>
 
-          {/* Column 2 — Submenu list */}
-          <div style={{ width: w >= 900 ? 200 : "100%", flexShrink:0 }}>
-            <div style={{
-              background:T.white, borderRadius:12, border:`1px solid ${T.border}`,
-              overflow:"hidden", boxShadow:"0 1px 3px rgba(0,0,0,0.05)",
-            }}>
-              <div style={{ padding:"10px 12px 6px", fontSize:10, fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase", color:T.faint }}>
-                {currentModule?.label}
-              </div>
-              {currentModule?.submenus.map(sub => {
-                const active = activeSubmenu === sub.key;
-                return (
-                  <button key={sub.key} onClick={() => setActiveSubmenu(sub.key)} style={{
-                    display:"flex", alignItems:"center", gap:10,
-                    width:"100%", padding:"11px 14px",
-                    background: active ? currentModule.bg : "none",
-                    border:"none", cursor:"pointer", textAlign:"left",
-                    borderLeft:`3px solid ${active ? currentModule.color : "transparent"}`,
-                    transition:"all 0.15s",
-                  }}>
-                    <span style={{ color: active ? currentModule.color : T.muted, display:"flex", flexShrink:0 }}>
-                      {sub.icon}
-                    </span>
-                    <span style={{ fontSize:13, fontWeight: active ? 600 : 500, color: active ? currentModule.color : T.mid }}>
-                      {sub.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Column 3 — Upload panel */}
+          {/* Document list */}
           <div style={{ flex:1, minWidth:0 }}>
-            <div style={{
-              background:T.white, borderRadius:12,
-              border:`1px solid ${T.border}`,
-              padding: w < 480 ? "18px 16px" : "24px",
-              boxShadow:"0 1px 3px rgba(0,0,0,0.05)",
-            }}>
-              {/* Submenu header */}
-              <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:6 }}>
-                <div style={{
-                  width:34, height:34, borderRadius:8,
-                  background:currentModule?.bg,
-                  display:"flex", alignItems:"center", justifyContent:"center",
-                  color:currentModule?.color, flexShrink:0,
-                }}>
-                  {currentSubmenu?.icon}
-                </div>
-                <div>
-                  <h2 style={{ fontSize:16, fontWeight:700, color:T.dark, letterSpacing:"-0.01em" }}>
-                    {currentSubmenu?.label}
-                  </h2>
-                  <p style={{ fontSize:12, color:T.muted, marginTop:2, lineHeight:1.5 }}>
-                    {currentSubmenu?.desc}
-                  </p>
-                </div>
+            <div style={{ background:T.white, borderRadius:12, border:`1px solid ${T.border}`, padding: w<480?"16px":"22px", boxShadow:"0 1px 3px rgba(0,0,0,0.04)" }}>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
+                <h2 style={{ fontSize:15, fontWeight:700, color:T.dark }}>{currentTab?.label}</h2>
+                <span style={{ fontSize:11, color:T.faint }}>{tabDocs.length} documento{tabDocs.length!==1?"s":""}</span>
               </div>
-
-              <div style={{ height:1, background:T.border, margin:"16px 0" }}/>
-
-              <FileUploadZone
-                moduleKey={uploadKey}
-                uploadedFiles={filesForSub}
-                setUploadedFiles={setFilesForSub}
-              />
-
-              {filesForSub.filter(f => f.status === "done").length > 0 && (
-                <div style={{ marginTop:16, paddingTop:16, borderTop:`1px solid ${T.border}`, display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
-                  <button style={{
-                    display:"inline-flex", alignItems:"center", gap:8,
-                    padding:"10px 22px", borderRadius:9,
-                    background:currentModule?.color, color:"#fff",
-                    fontSize:13, fontWeight:600, border:"none", cursor:"pointer",
-                    transition:"opacity 0.15s",
-                  }}
-                    onMouseEnter={e => e.currentTarget.style.opacity="0.85"}
-                    onMouseLeave={e => e.currentTarget.style.opacity="1"}
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                    Confirmar Publicação
-                  </button>
-                  <span style={{ fontSize:12, color:T.muted }}>
-                    Documentos serão registrados com sua assinatura AD.
-                  </span>
-                </div>
-              )}
+              <DocList docs={tabDocs}/>
             </div>
           </div>
         </div>
@@ -1583,11 +1580,170 @@ function AdminPanel({ navigate }) {
   );
 }
 
+// ── The three module pages ────────────────────────────────────
+function RHPage({ navigate }) {
+  return <ModulePage navigate={navigate} moduleKey="rh" title="Recursos Humanos"
+    icon={<ICONS.Users s={22}/>} accentColor="#7c3aed" accentBg="#f5f3ff"
+    canEdit={can.editRH}
+    tabs={[
+      { key:"beneficios", label:"Benefícios",          docCat:"Benefícios",        icon:<Si d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/> },
+      { key:"ferias",     label:"Férias",               docCat:"Férias",             icon:<Si d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/> },
+      { key:"folha",      label:"Folha de Pagamento",   docCat:"Folha de Pagamento", icon:<Si d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/> },
+      { key:"geral",      label:"Documentos Gerais",    docCat:"Documentos Gerais",  icon:<Si d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6"/> },
+    ]}
+  />;
+}
+
+function QualidadePage({ navigate }) {
+  return <ModulePage navigate={navigate} moduleKey="qualidade" title="Qualidade e Segurança"
+    icon={<ICONS.Clip s={22}/>} accentColor="#16a34a" accentBg="#f0fdf4"
+    canEdit={can.editQuality}
+    tabs={[
+      { key:"protocolos", label:"Protocolos",           docCat:"Protocolos",   icon:<Si d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"/> },
+      { key:"indicadores",label:"Indicadores",          docCat:"Indicadores",  icon:<Si d="M18 20V10M12 20V4M6 20v-6"/> },
+      { key:"eventos",    label:"Eventos Adversos",     docCat:"Eventos",      icon:<Si d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"/> },
+      { key:"auditorias", label:"Auditorias",           docCat:"Auditorias",   icon:<Si d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/> },
+    ]}
+  />;
+}
+
+function SuportePage({ navigate }) {
+  return <ModulePage navigate={navigate} moduleKey="suporte" title="Suporte T.I."
+    icon={<ICONS.Wrench s={22}/>} accentColor="#475569" accentBg="#f8fafc"
+    canEdit={can.editIT}
+    tabs={[
+      { key:"infra",      label:"Infraestrutura",       docCat:"Infraestrutura", icon:<Si d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 0-2-2V9m0 0h18"/> },
+      { key:"acessos",    label:"Acessos",              docCat:"Acessos",        icon:<Si d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/> },
+      { key:"seguranca",  label:"Segurança",            docCat:"Segurança",      icon:<Si d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"/> },
+      { key:"equip",      label:"Equipamentos",         docCat:"Equipamentos",   icon:<Si d="M5 17H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v3m4 11H9a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2z"/> },
+    ]}
+  />;
+}
+
 // ══════════════════════════════════════════════════════════════
-// 19. GENERIC PLACEHOLDER (for pages without upload)
+// 18. ADMIN PANEL  (IT admins only — not linked from nav or cards)
+// ══════════════════════════════════════════════════════════════
+function AdminPanel({ navigate }) {
+  const { w } = useBreakpoint();
+  if (!can.admin) {
+    return (
+      <div style={{ minHeight:"calc(100vh-60px)", display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
+        <div style={{ textAlign:"center", maxWidth:360 }}>
+          <div style={{ fontSize:48, marginBottom:16 }}>🔒</div>
+          <h2 style={{ fontSize:18, fontWeight:700, color:T.dark, marginBottom:8 }}>Acesso Negado</h2>
+          <p style={{ fontSize:13, color:T.muted, marginBottom:20 }}>Esta área é restrita ao grupo <strong>Intranet.Admin</strong> no Active Directory.</p>
+          <button onClick={() => navigate("home")} style={{
+            padding:"10px 22px", borderRadius:9, background:T.blue, color:"#fff",
+            fontSize:13, fontWeight:600, border:"none", cursor:"pointer",
+          }}>Voltar ao Início</button>
+        </div>
+      </div>
+    );
+  }
+
+  const adminModules = [
+    { key:"rh",    label:"RH",        color:"#7c3aed", bg:"#f5f3ff", icon:<ICONS.Users s={18}/>,  uploadKey:"rh" },
+    { key:"qual",  label:"Qualidade", color:"#16a34a", bg:"#f0fdf4", icon:<ICONS.Clip s={18}/>,   uploadKey:"qualidade" },
+    { key:"ti",    label:"T.I.",      color:"#475569", bg:"#f8fafc", icon:<ICONS.Wrench s={18}/>, uploadKey:"suporte" },
+  ];
+  const [activeMod, setActiveMod]     = useState("rh");
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const mod = adminModules.find(m => m.key === activeMod);
+  const doneCt = uploadedFiles.filter(f => f.status==="done" && f.mod===activeMod).length;
+
+  return (
+    <div className="fade-up" style={{ minHeight:"calc(100vh-60px)", background:T.canvas }}>
+      <div style={{ maxWidth:1000, margin:"0 auto", padding: w<480?"20px 14px 48px":"36px 32px 64px" }}>
+
+        {/* Header */}
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:24, flexWrap:"wrap", gap:12 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+            <div style={{ width:44, height:44, borderRadius:11, background:"#fef3c7", display:"flex", alignItems:"center", justifyContent:"center", fontSize:20 }}>
+              ⚙️
+            </div>
+            <div>
+              <h1 style={{ fontSize:20, fontWeight:800, color:T.dark, letterSpacing:"-0.02em" }}>Painel Administrativo</h1>
+              <div style={{ fontSize:12, color:T.muted }}>Acesso restrito · {CURRENT_USER.displayName} · Intranet.Admin</div>
+            </div>
+          </div>
+          <button onClick={() => navigate("home")} style={{
+            display:"inline-flex", alignItems:"center", gap:7, padding:"9px 16px", borderRadius:9,
+            background:T.white, border:`1px solid ${T.border}`, fontSize:13, fontWeight:600, color:T.mid, cursor:"pointer",
+          }}>
+            <ICONS.ArrowL s={13}/> Início
+          </button>
+        </div>
+
+        {/* Module selector */}
+        <div style={{ display:"flex", gap:10, marginBottom:20, flexWrap:"wrap" }}>
+          {adminModules.map(m => (
+            <button key={m.key} onClick={() => setActiveMod(m.key)} style={{
+              display:"flex", alignItems:"center", gap:8, padding:"10px 18px", borderRadius:9,
+              background: activeMod===m.key ? m.bg : T.white,
+              border:`1.5px solid ${activeMod===m.key ? m.color : T.border}`,
+              color: activeMod===m.key ? m.color : T.mid,
+              fontSize:13, fontWeight:600, cursor:"pointer", transition:"all 0.15s",
+            }}>
+              {m.icon} {m.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Upload panel */}
+        {mod && (
+          <div style={{ background:T.white, borderRadius:12, border:`1px solid ${T.border}`, padding: w<480?"18px":"24px", boxShadow:"0 1px 3px rgba(0,0,0,0.05)" }}>
+            <div style={{ marginBottom:18 }}>
+              <h2 style={{ fontSize:16, fontWeight:700, color:T.dark }}>Publicar Documentos — {mod.label}</h2>
+              <p style={{ fontSize:13, color:T.muted, marginTop:4 }}>
+                Documentos publicados ficam visíveis para todos os colaboradores com acesso ao módulo.
+              </p>
+            </div>
+            <FileUploadZone
+              moduleKey={mod.uploadKey}
+              uploadedFiles={uploadedFiles.filter(f => f.mod===activeMod)}
+              setUploadedFiles={updater => setUploadedFiles(prev => {
+                const next = typeof updater==="function" ? updater(prev) : updater;
+                return next.map(f => f.mod ? f : { ...f, mod: activeMod });
+              })}
+            />
+            {doneCt > 0 && (
+              <div style={{ marginTop:16, paddingTop:16, borderTop:`1px solid ${T.border}`, display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
+                <button style={{
+                  display:"inline-flex", alignItems:"center", gap:7,
+                  padding:"10px 22px", borderRadius:9,
+                  background:mod.color, color:"#fff",
+                  fontSize:13, fontWeight:600, border:"none", cursor:"pointer",
+                }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  Publicar ({doneCt})
+                </button>
+                <span style={{ fontSize:12, color:T.muted }}>Registrado com assinatura AD e timestamp.</span>
+              </div>
+            )}
+
+            {/* Existing docs in this module */}
+            <div style={{ marginTop:24, paddingTop:20, borderTop:`1px solid ${T.border}` }}>
+              <div style={{ fontSize:13, fontWeight:700, color:T.dark, marginBottom:12 }}>
+                Documentos publicados em {mod.label}
+              </div>
+              <DocList docs={MOCK_DOCS[mod.uploadKey] || []}/>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// 19. GENERIC PLACEHOLDER
 // ══════════════════════════════════════════════════════════════
 const PAGE_META = {
   ramais: { title:"Catálogo de Ramais", icon:<ICONS.Phone s={32}/>, desc:"Diretório completo de ramais, setores e contatos de emergência." },
+  protocolos: { title:"Protocolos Clínicos", icon:<ICONS.Clip s={32}/>, desc:"Biblioteca completa de protocolos médicos e diretrizes." },
+  biblioteca: { title:"Biblioteca Médica", icon:<ICONS.Book s={32}/>, desc:"Artigos científicos, guidelines e materiais de educação continuada." },
 };
 
 function GenericPlaceholder({ pageName, navigate }) {
@@ -1602,29 +1758,15 @@ function GenericPlaceholder({ pageName, navigate }) {
       <div style={{
         background:T.white, borderRadius:16,
         padding: w < 400 ? "32px 20px" : "48px 32px",
-        textAlign:"center",
-        boxShadow:"0 1px 4px rgba(0,0,0,0.07)",
-        border:`1px solid ${T.border}`,
-        maxWidth:420, width:"100%",
+        textAlign:"center", boxShadow:"0 1px 4px rgba(0,0,0,0.07)",
+        border:`1px solid ${T.border}`, maxWidth:420, width:"100%",
       }}>
-        {meta.restricted && (
-          <div style={{
-            display:"inline-block", padding:"3px 12px", borderRadius:20,
-            background:"#fef3c7", color:"#92400e",
-            fontSize:10, fontWeight:700, letterSpacing:"0.07em",
-            textTransform:"uppercase", marginBottom:18,
-          }}>🔒 Acesso Restrito — AD Groups</div>
-        )}
         <div style={{
           width:64, height:64, borderRadius:"50%", background:T.blueLight,
           display:"flex", alignItems:"center", justifyContent:"center",
           margin:"0 auto 18px", color:T.blue,
-        }}>
-          {meta.icon}
-        </div>
-        <h1 style={{ fontSize:20, fontWeight:700, color:T.dark, letterSpacing:"-0.02em", marginBottom:9 }}>
-          {meta.title}
-        </h1>
+        }}>{meta.icon}</div>
+        <h1 style={{ fontSize:20, fontWeight:700, color:T.dark, letterSpacing:"-0.02em", marginBottom:9 }}>{meta.title}</h1>
         <p style={{ fontSize:13, color:T.muted, lineHeight:1.6, marginBottom:24 }}>{meta.desc}</p>
         <div style={{ marginBottom:24 }}>
           {[68,48,58].map((ww,i) => (
@@ -1632,11 +1774,8 @@ function GenericPlaceholder({ pageName, navigate }) {
           ))}
         </div>
         <button onClick={() => navigate("home")} style={{
-          display:"inline-flex", alignItems:"center", gap:8,
-          padding:"10px 22px", borderRadius:9,
-          background:T.blue, color:"#fff",
-          fontSize:13, fontWeight:600, border:"none", cursor:"pointer",
-          transition:"background 0.15s",
+          display:"inline-flex", alignItems:"center", gap:8, padding:"10px 22px", borderRadius:9,
+          background:T.blue, color:"#fff", fontSize:13, fontWeight:600, border:"none", cursor:"pointer",
         }}
           onMouseEnter={e => e.currentTarget.style.background=T.blueDark}
           onMouseLeave={e => e.currentTarget.style.background=T.blue}
@@ -1648,11 +1787,12 @@ function GenericPlaceholder({ pageName, navigate }) {
   );
 }
 
+// ── Page router ───────────────────────────────────────────────
 function PageView({ pageName, navigate }) {
-  if (pageName === "rh")        return <RHPage navigate={navigate}/>;
-  if (pageName === "suporte")   return <SuportePage navigate={navigate}/>;
+  if (pageName === "rh")        return <RHPage       navigate={navigate}/>;
   if (pageName === "qualidade") return <QualidadePage navigate={navigate}/>;
-  if (pageName === "admin")     return <AdminPanel navigate={navigate}/>;
+  if (pageName === "suporte")   return <SuportePage  navigate={navigate}/>;
+  if (pageName === "admin")     return <AdminPanel   navigate={navigate}/>;
   return <GenericPlaceholder pageName={pageName} navigate={navigate}/>;
 }
 
