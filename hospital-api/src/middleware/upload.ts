@@ -1,4 +1,6 @@
-import multer from 'multer';
+import multer, { StorageEngine } from 'multer';
+import { Request } from 'express';
+import { FileFilterCallback } from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { randomUUID } from 'crypto';
@@ -19,13 +21,13 @@ const ALLOWED_MIMES = [
   'text/plain',
 ];
 
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
+const storage: StorageEngine = multer.diskStorage({
+  destination: (_req: Request, _file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) => {
     const dir = path.resolve(env.UPLOAD_DIR);
     fs.mkdirSync(dir, { recursive: true });
     cb(null, dir);
   },
-  filename: (_req, file, cb) => {
+  filename: (_req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => {
     const ext = path.extname(file.originalname).toLowerCase();
     const uuid = randomUUID();
     cb(null, `${uuid}${ext}`);
@@ -35,7 +37,7 @@ const storage = multer.diskStorage({
 export const uploadMiddleware = multer({
   storage,
   limits: { fileSize: env.MAX_FILE_SIZE_MB * 1024 * 1024 },
-  fileFilter: (_req, file, cb) => {
+  fileFilter: (_req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
     if (ALLOWED_MIMES.includes(file.mimetype)) {
       cb(null, true);
     } else {

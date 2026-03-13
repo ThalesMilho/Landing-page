@@ -1,5 +1,5 @@
 import { prisma } from '../config/database';
-import { Module, DocumentStatus } from '@prisma/client';
+import { Module, DocumentStatus } from '../types/enums';
 import { AzureAdJwtClaims } from '../types/azureAd';
 import path from 'path';
 

@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
-import { Module } from '@prisma/client';
+import { Module } from '../types/enums';
 import { documentService } from '../services/documentService';
 import { AppError } from '../middleware/errorHandler';
 import { z } from 'zod';
