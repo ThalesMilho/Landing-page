@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  hospital-api:
+    build: ./hospital-api
+    container_name: hospital-api
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DATABASE_URL=file:./dev.db
+      - UPLOAD_DIR=uploads
+      - MAX_FILE_SIZE_MB=20
+      - AZURE_TENANT_ID=mock-tenant-id-123
+      - AZURE_CLIENT_ID=mock-client-id-456
+      - AZURE_AUDIENCE=mock-audience-789
+      - ALLOWED_ORIGIN=http://localhost
+      - RATE_LIMIT_WINDOW_MS=900000
+      - RATE_LIMIT_MAX=200
+      - LOG_LEVEL=info
+    volumes:
+      - ./hospital-api/uploads:/app/uploads
+      - ./hospital-api/prisma:/app/prisma
+    networks:
+      - hospital-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  hospital-frontend:
+    build: ./hospital-intranet
+    container_name: hospital-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      hospital-api:
+        condition: service_healthy
+    networks:
+      - hospital-network
+
+networks:
+  hospital-network:
+    driver: bridge
+
+volumes:
+  uploads:
+  prisma:
