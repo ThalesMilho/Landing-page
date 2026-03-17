@@ -1,0 +1,1 @@
+{"version":3,"file":"documentController.d.ts","sourceRoot":"","sources":["../../src/controllers/documentController.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,YAAY,EAAE,OAAO,EAAE,QAAQ,EAAE,MAAM,SAAS,CAAC;AAc/D,eAAO,MAAM,kBAAkB;gBACX,OAAO,OAAO,QAAQ,QAAQ,YAAY;sBAwBpC,OAAO,OAAO,QAAQ,QAAQ,YAAY;kBAc9C,OAAO,OAAO,QAAQ,QAAQ,YAAY;iBAoB3C,OAAO,OAAO,QAAQ,QAAQ,YAAY;CAU9D,CAAC"}

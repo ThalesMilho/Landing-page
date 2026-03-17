@@ -1,0 +1,3 @@
+import "express-async-errors";
+export declare function buildApp(): import("express-serve-static-core").Express;
+//# sourceMappingURL=app.d.ts.map

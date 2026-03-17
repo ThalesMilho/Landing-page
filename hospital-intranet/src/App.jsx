@@ -70,13 +70,13 @@ function useBreakpoint() {
 //  ▼ Change the roles array below to test different access levels ▼
 // ══════════════════════════════════════════════════════════════
 const CURRENT_USER = {
-  displayName: "Dr. Carlos Silva",
-  givenName:   "Carlos",
-  surname:     "Silva",
+  displayName: "Colaborador",
+  givenName:   "Colaborador",
+  surname:     "",
   jobTitle:    "Médico Clínico",
   department:  "Clínica Geral",
   mail:        "dr.silva@hospital.com",
-  initials:    "CS",
+  initials:    "CO",
   avatarColor: "linear-gradient(135deg,#1a56db,#60a5fa)",
 
   // ── Swap roles to test different users: ──────────────────────
@@ -213,6 +213,74 @@ const LogoMark = ({ size=36 }) => (
 // ══════════════════════════════════════════════════════════════
 // 7. HEADER
 // ══════════════════════════════════════════════════════════════
+function NavDropdown({ item, page, go, T }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    function handle(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
+    document.addEventListener('mousedown', handle);
+    return () => document.removeEventListener('mousedown', handle);
+  }, []);
+  const active = item.children ? item.children.some(c => c.p === page) : page === item.p;
+  return (
+    <div ref={ref} style={{ position:'relative', display:'inline-block' }}>
+      <button onClick={() => setOpen(o => !o)}
+        className={active ? "" : "nav-btn"}
+        style={{
+          padding:"7px 13px", fontSize:13, fontWeight: active ? 600 : 500,
+          color: active ? "#fff" : T.mid,
+          background: active ? T.blue : "transparent",
+          borderRadius:7, border:"none", cursor:"pointer",
+          transition:"all 0.15s", whiteSpace:"nowrap",
+          display:"inline-flex", alignItems:"center", gap:4,
+        }}>
+        {item.label}
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+          style={{ opacity:0.7, transition:"transform 0.15s", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}>
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+      {open && (
+        <div style={{
+          position:"absolute", top:"100%", left:0, marginTop:4, minWidth:200,
+          background:"#fff", borderRadius:8, boxShadow:"0 4px 20px rgba(0,0,0,0.12)",
+          border:"1px solid #e5e7eb", zIndex:1000, padding:"4px 0",
+        }}>
+          {item.children.map((child, ci) => child.external ? (
+            <a key={ci} href={child.external} target="_blank" rel="noopener noreferrer"
+              onClick={() => setOpen(false)}
+              style={{
+                display:"flex", alignItems:"center", gap:6,
+                padding:"8px 16px", fontSize:13, color:T.mid,
+                textDecoration:"none", whiteSpace:"nowrap",
+              }}
+              onMouseEnter={e => e.currentTarget.style.background="#f3f4f6"}
+              onMouseLeave={e => e.currentTarget.style.background="transparent"}>
+              {child.label}
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{opacity:0.4}}>
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/>
+              </svg>
+            </a>
+          ) : (
+            <button key={ci} onClick={() => { go(child.p); setOpen(false); }}
+              style={{
+                display:"block", width:"100%", textAlign:"left",
+                padding:"8px 16px", fontSize:13, color:T.mid,
+                background:"transparent", border:"none", cursor:"pointer", whiteSpace:"nowrap",
+              }}
+              onMouseEnter={e => e.currentTarget.style.background="#f3f4f6"}
+              onMouseLeave={e => e.currentTarget.style.background="transparent"}>
+              {child.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Header({ page, navigate }) {
   const user = CURRENT_USER;
   const { isMobile, isXs, w }     = useBreakpoint();
@@ -222,12 +290,30 @@ function Header({ page, navigate }) {
   const go = (p) => { navigate(p); setOpen(false); setUMenu(false); };
 
   const navItems = [
-    { label:"Início",                p:"home" },
-    { label:"Qualidade e Segurança", p:"qualidade" },
-    { label:"Recursos Humanos",      p:"rh" },
-    { label:"Catálogo de Ramais",    p:"ramais" },
-    { label:"Suporte T.I.",          p:"suporte", external:"http://ares/front/central.php" },
-  ];
+  { label:"Início", p:"home" },
+  { label:"Gente e Gestão", p:"rh", children:[
+    { label:"Escalas dos Colaboradores", p:"rh", tab:"escalas" },
+    { label:"Ações do Mês", p:"rh", tab:"acoes" },
+    { label:"Lista de Treinamentos", p:"rh", tab:"treinamentos" },
+    { label:"Contatos RH/DP/SESMT", p:"rh", tab:"contatos" },
+    { label:"Aniversariantes do Mês", p:"rh", tab:"aniversariantes" },
+  ]},
+  { label:"Qualidade e Segurança", p:"qualidade", children:[
+    { label:"Indicadores", p:"qualidade", tab:"indicadores" },
+    { label:"Documentos da Qualidade", p:"qualidade", tab:"protocolos" },
+    { label:"Formulários", p:"qualidade", tab:"formularios" },
+  ]},
+  { label:"Procedimentos e Ramais", p:"ramais", children:[
+    { label:"Catálogo de Ramais", external:"https://docs.google.com/spreadsheets/d/1DmqEfls0WleuTSe4UtiU5RTno5dQG6TIMINAxYApCzw/edit?gid=0#gid=0" },
+    { label:"Procedimentos (POPs)", p:"procedimentos" },
+  ]},
+  { label:"Canais FUBOG", p:"canais", children:[
+    { label:"Canal de Gente e Gestão", p:"canais" },
+    { label:"Canal NPS", p:"canais" },
+    { label:"Canal de Compliance", external:"https://docs.google.com/forms/d/e/1FAIpQLSeCFr7s2mJzOa6VII2PqihBuImj1v2dSmBK8EskPYC8AgKuGg/viewform" },
+  ]},
+  { label:"Suporte T.I.", p:"suporte", external:"http://ares/front/central.php" },
+];
 
   const h = w < 640 ? 54 : 60;
 
@@ -267,10 +353,9 @@ function Header({ page, navigate }) {
         {/* Desktop Nav */}
         {!isMobile && (
           <nav style={{ display:"flex", gap:2, alignItems:"center" }}>
-            {navItems.map(({ label, p, external }) => {
-              const active = page === p;
-              if (external) return (
-                <a key={p} href={external} target="_blank" rel="noopener noreferrer"
+            {navItems.map((item, idx) => {
+              if (item.external && !item.children) return (
+                <a key={idx} href={item.external} target="_blank" rel="noopener noreferrer"
                   className="nav-btn"
                   style={{
                     padding:"7px 13px", fontSize:13, fontWeight:500,
@@ -279,14 +364,16 @@ function Header({ page, navigate }) {
                     transition:"all 0.15s", whiteSpace:"nowrap",
                     textDecoration:"none", display:"inline-flex", alignItems:"center", gap:5,
                   }}>
-                  {label}
+                  {item.label}
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{opacity:0.5}}>
                     <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/>
                   </svg>
                 </a>
               );
+              if (item.children) return <NavDropdown key={idx} item={item} page={page} go={go} T={T} />;
+              const active = page === item.p;
               return (
-                <button key={p} onClick={() => go(p)}
+                <button key={idx} onClick={() => go(item.p)}
                   className={active ? "" : "nav-btn"}
                   style={{
                     padding:"7px 13px", fontSize:13, fontWeight: active ? 600 : 500,
@@ -294,7 +381,7 @@ function Header({ page, navigate }) {
                     background: active ? T.blue : "transparent",
                     borderRadius:7, border:"none", cursor:"pointer",
                     transition:"all 0.15s", whiteSpace:"nowrap",
-                  }}>{label}
+                  }}>{item.label}
                 </button>
               );
             })}

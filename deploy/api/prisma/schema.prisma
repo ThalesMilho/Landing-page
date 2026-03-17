@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Document {
+  id            String     @id @default(cuid())
+
+  filename      String
+  storedName    String
+  mimeType      String
+  sizeBytes     Int
+  filePath      String
+
+  module        String     // "RH" | "QUALIDADE" | "SUPORTE"
+  category      String
+
+  uploaderOid   String
+  uploaderName  String
+  uploaderEmail String
+  uploaderDept  String
+
+  status        String     @default("PENDING") // "PENDING" | "PUBLISHED" | "ARCHIVED"
+  publishedAt   DateTime?
+  archivedAt    DateTime?
+
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  auditLogs     AuditLog[]
+}
+
+model AuditLog {
+  id            String   @id @default(cuid())
+
+  documentId    String
+  document      Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  action        String   // "UPLOAD" | "PUBLISH" | "DOWNLOAD" | "ARCHIVE" | "DELETE"
+  performedBy   String
+  performerName String
+  ipAddress     String?
+  userAgent     String?
+  notes         String?
+
+  createdAt     DateTime @default(now())
+
+  @@index([documentId])
+  @@index([performedBy])
+  @@index([createdAt])
+}
