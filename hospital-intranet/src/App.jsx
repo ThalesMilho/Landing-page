@@ -161,7 +161,7 @@ const GlobalStyles = () => (
 // 5. SVG ICON SYSTEM
 // ══════════════════════════════════════════════════════════════
 const Ic = ({ d, size=18, sw=1.8, color="currentColor", fill="none", extra="" }) => (
-  <img src="/fubog-logo-transparente.png" style={{height:36}}/>
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke={color} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round"><path d={d}/></svg>
 );
 
 const ICONS = {
