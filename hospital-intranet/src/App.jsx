@@ -161,11 +161,7 @@ const GlobalStyles = () => (
 // 5. SVG ICON SYSTEM
 // ══════════════════════════════════════════════════════════════
 const Ic = ({ d, size=18, sw=1.8, color="currentColor", fill="none", extra="" }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill={fill}
-    stroke={color} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round"
-    style={{ flexShrink:0 }}>
-    <path d={d+extra}/>
-  </svg>
+  <img src="/fubog-logo-transparente.png" style={{height:36}}/>
 );
 
 const ICONS = {
@@ -760,8 +756,8 @@ function Sidebar() {
 // ══════════════════════════════════════════════════════════════
 const CARDS = [
   { page:"rh",        icon:<ICONS.Users s={20}/>,  iconBg:"#f5f3ff", iconColor:"#7c3aed",
-    title:"Recursos Humanos",
-    desc:"Documentos, benefícios, férias e folha de pagamento.",
+    title:"Gente e Gestão",
+    desc:"Escalas, treinamentos, contatos e ações do mês.",
     canManage: can.editRH },
   { page:"qualidade", icon:<ICONS.Clip s={20}/>,   iconBg:"#f0fdf4", iconColor:"#16a34a",
     title:"Qualidade e Segurança",
@@ -1399,11 +1395,24 @@ const Si = ({ d, s=15 }) => (
 // ── Simulated document library per module ────────────────────
 const MOCK_DOCS = {
   rh: [
-    { id:1, name:"Política de Benefícios 2025.pdf",        size:245000, cat:"Benefícios",         date:"10/01/2025", author:"RH" },
-    { id:2, name:"Guia de Férias — Como Solicitar.pdf",    size:182000, cat:"Férias",              date:"03/03/2025", author:"RH" },
-    { id:3, name:"Holerite Modelo — Jan 2025.pdf",         size:98000,  cat:"Folha de Pagamento",  date:"05/02/2025", author:"RH" },
-    { id:4, name:"Regulamento Interno Atualizado.docx",    size:310000, cat:"Documentos Gerais",   date:"15/01/2025", author:"RH" },
-    { id:5, name:"Vale-Transporte — Formulário.pdf",       size:76000,  cat:"Benefícios",          date:"20/02/2025", author:"RH" },
+    { id:101, name:"Abrir Escala Atual — Pronto Socorro", cat:"Escalas", date:"Sempre atualizado", url:"/escalas/escala-pronto-socorro.pdf" },
+    { id:102, name:"Abrir Escala Atual — CME",            cat:"Escalas", date:"Sempre atualizado", url:"/escalas/escala-cme.pdf" },
+    { id:1, name:"Política de Benefícios", cat:"Políticas", date:"2024-01-15", size:"2.4 MB", icon:<Si d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" />, desc:"Diretrizes completas de benefícios para colaboradores" },
+    { id:2, name:"Guia de Férias", cat:"Políticas", date:"2024-02-01", size:"1.8 MB", icon:<Si d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2z" />, desc:"Procedimentos e prazos para solicitação de férias" },
+    { id:3, name:"Manual de Integração", cat:"Políticas", date:"2024-01-20", size:"5.2 MB", icon:<Si d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />, desc:"Processos de onboarding e cultura organizacional" },
+    { id:4, name:"Código de Conduta", cat:"Políticas", date:"2024-01-10", size:"1.2 MB", icon:<Si d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />, desc:"Normas de conduta e ética profissional" },
+    { id:5, name:"Formulário de Solicitação", cat:"Formulários", date:"2024-03-01", size:"156 KB", icon:<Si d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />, desc:"Solicitação de benefícios e autorizações" },
+    { id:6, name:"Declaração de Vínculo", cat:"Formulários", date:"2024-02-15", size:"98 KB", icon:<Si d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />, desc:"Declaração de vínculo empregatício para fins diversos" },
+    { id:7, name:"Atestado de Frequência", cat:"Formulários", date:"2024-03-10", size:"112 KB", icon:<Si d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />, desc:"Atestado de frequência para benefícios sociais" },
+    { id:8, name:"Treinamento de Segurança", cat:"Treinamentos", date:"2024-01-25", size:"3.1 MB", icon:<Si d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />, desc:"Procedimentos de segurança do trabalho" },
+    { id:9, name:"Treinamento de Primeiros Socorros", cat:"Treinamentos", date:"2024-02-20", size:"4.7 MB", icon:<Si d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />, desc:"Atendimento de emergências médicas" },
+    { id:10, name:"Capacitação em Atendimento ao Paciente", cat:"Treinamentos", date:"2024-03-05", size:"2.8 MB", icon:<Si d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />, desc:"Técnicas de comunicação e humanização" },
+    { id:11, name:"Contatos RH", cat:"Contatos", date:"2024-01-01", size:"45 KB", icon:<Si d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />, desc:"E-mails e telefones do departamento de RH" },
+    { id:12, name:"Contatos DP", cat:"Contatos", date:"2024-01-01", size:"38 KB", icon:<Si d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />, desc:"Departamento Pessoal contatos e horários" },
+    { id:13, name:"Contatos SESMT", cat:"Contatos", date:"2024-01-01", size:"42 KB", icon:<Si d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />, desc:"Serviços Especializados em Engenharia de Segurança e Medicina do Trabalho" },
+    { id:14, name:"Aniversariantes - Janeiro", cat:"Aniversariantes", date:"2024-01-01", size:"125 KB", icon:<Si d="M12 8v13m0-13V6a2 2 0 112 2h-2z" />, desc:"Colaboradores fazendo aniversário em janeiro" },
+    { id:15, name:"Aniversariantes - Fevereiro", cat:"Aniversariantes", date:"2024-02-01", size:"118 KB", icon:<Si d="M12 8v13m0-13V6a2 2 0 112 2h-2z" />, desc:"Colaboradores fazendo aniversário em fevereiro" },
+    { id:16, name:"Aniversariantes - Março", cat:"Aniversariantes", date:"2024-03-01", size:"132 KB", icon:<Si d="M12 8v13m0-13V6a2 2 0 112 2h-2z" />, desc:"Colaboradores fazendo aniversário em março" },
   ],
   qualidade: [
     { id:1, name:"Protocolo Sepse v4.2.pdf",               size:520000, cat:"Protocolos",          date:"01/02/2025", author:"Qualidade" },
@@ -1420,64 +1429,148 @@ const MOCK_DOCS = {
   ],
 };
 
-// ── Read-only document list ───────────────────────────────────
-function DocList({ docs }) {
+export function DocList({ docs, onDownload }) {
   const { w } = useBreakpoint();
-  if (!docs || docs.length === 0) return (
-    <div style={{ textAlign:"center", padding:"32px 0", color:T.faint, fontSize:13 }}>
-      Nenhum documento disponível.
-    </div>
-  );
+
+  if (!docs || docs.length === 0) {
+    return (
+      <div style={{ textAlign: "center", padding: "32px 0", color: T.faint, fontSize: 13 }}>
+        Nenhum documento disponível.
+      </div>
+    );
+  }
+
   return (
-    <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-      {docs.map(doc => {
-        const ic = getFileIcon(doc.name);
-        return (
-          <div key={doc.id} style={{
-            background:T.white, borderRadius:10,
-            border:`1px solid ${T.border}`,
-            padding:"11px 14px",
-            display:"flex", alignItems:"center", gap:12,
-            boxShadow:"0 1px 3px rgba(0,0,0,0.04)",
-          }}>
-            <div style={{
-              width:36, height:36, borderRadius:8, flexShrink:0,
-              background:ic.bg, color:ic.color,
-              display:"flex", alignItems:"center", justifyContent:"center",
-              fontSize:9, fontWeight:700, letterSpacing:"0.04em",
-            }}>{ic.label}</div>
-            <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontSize:13, fontWeight:600, color:T.dark,
-                whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
-                {doc.name}
-              </div>
-              <div style={{ fontSize:11, color:T.faint, marginTop:3 }}>
-                {doc.cat} · {formatBytes(doc.size)} · {doc.date}
-              </div>
-            </div>
-            <button style={{
-              display:"flex", alignItems:"center", gap:5,
-              padding:"6px 12px", borderRadius:7, flexShrink:0,
-              background:T.blueLight, color:T.blue,
-              border:"none", cursor:"pointer", fontSize:12, fontWeight:600,
-              transition:"opacity 0.15s",
-            }}
-              onMouseEnter={e => e.currentTarget.style.opacity="0.7"}
-              onMouseLeave={e => e.currentTarget.style.opacity="1"}
-              title="Baixar documento"
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
-              </svg>
-              {w >= 480 ? "Baixar" : ""}
-            </button>
-          </div>
-        );
-      })}
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      {docs.map(doc => (
+        <DocListItem 
+          key={doc?.id || Math.random()} 
+          doc={doc} 
+          w={w} 
+          onDownload={onDownload} 
+        />
+      ))}
     </div>
   );
 }
 
+// ── Individual Document Item ───────────────────────────────────
+function DocListItem({ doc, w, onDownload }) {
+  // Safe React states for hovers
+  const [isButtonHovered, setIsButtonHovered] = useState(false);
+  const [isTextHovered, setIsTextHovered] = useState(false);
+  
+  const ic = getFileIcon(doc?.name || "");
+  const isLink = !!doc?.url;
+
+  return (
+    <div style={{
+      background: T.white, borderRadius: 10,
+      border: `1px solid ${T.border}`,
+      padding: "11px 14px",
+      display: "flex", alignItems: "center", gap: 12,
+      boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+    }}>
+      
+      {/* 1. Icon Area (Conditional PDF styling) */}
+      <div style={{
+        width: 36, height: 36, borderRadius: 8, flexShrink: 0,
+        background: isLink ? "#FFE5E5" : (ic?.bg || T.gray), // Fallback colors
+        color: isLink ? "#D32F2F" : (ic?.color || T.dark),
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: 9, fontWeight: 700, letterSpacing: "0.04em",
+      }}>
+        {isLink ? "PDF" : (ic?.label || "FILE")}
+      </div>
+
+      {/* 2. Text Info Area */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {isLink ? (
+          <a 
+            href={doc.url} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            title={doc?.name}
+            onMouseEnter={() => setIsTextHovered(true)}
+            onMouseLeave={() => setIsTextHovered(false)}
+            style={{ 
+              fontSize: 13, fontWeight: 700, color: T.blue, 
+              textDecoration: isTextHovered ? "underline" : "none", 
+              display: "block", whiteSpace: "nowrap", 
+              overflow: "hidden", textOverflow: "ellipsis",
+              transition: "text-decoration 0.2s"
+            }}
+          >
+            {doc?.name || "Link sem nome"} 🔗
+          </a>
+        ) : (
+          <div 
+            title={doc?.name} 
+            style={{ 
+              fontSize: 13, fontWeight: 600, color: T.dark,
+              whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" 
+            }}
+          >
+            {doc?.name || "Documento sem nome"}
+          </div>
+        )}
+        
+        <div style={{ fontSize: 11, color: T.faint, marginTop: 3 }}>
+          {doc?.cat || "Geral"} · {doc?.size ? formatBytes(doc?.size) : "0 B"} · {doc?.date || "--"}
+        </div>
+      </div>
+
+      {/* 3. Action Button / Link */}
+      {isLink ? (
+        <a 
+          href={doc.url} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          onMouseEnter={() => setIsButtonHovered(true)}
+          onMouseLeave={() => setIsButtonHovered(false)}
+          aria-label={`Abrir ${doc?.name || "link"}`}
+          title="Abrir documento"
+          style={{
+            display: "flex", alignItems: "center", gap: 5,
+            padding: "6px 12px", borderRadius: 7, flexShrink: 0,
+            background: T.blueLight, color: T.blue, textDecoration: "none",
+            border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600,
+            opacity: isButtonHovered ? 0.7 : 1,
+            transition: "opacity 0.15s",
+          }}
+        >
+          {/* External Link SVG */}
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/>
+          </svg>
+          {w >= 480 && "Abrir"}
+        </a>
+      ) : (
+        <button 
+          onClick={() => onDownload && onDownload(doc)}
+          onMouseEnter={() => setIsButtonHovered(true)}
+          onMouseLeave={() => setIsButtonHovered(false)}
+          aria-label={`Baixar ${doc?.name || "documento"}`}
+          title="Baixar documento"
+          style={{
+            display: "flex", alignItems: "center", gap: 5,
+            padding: "6px 12px", borderRadius: 7, flexShrink: 0,
+            background: T.blueLight, color: T.blue,
+            border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600,
+            opacity: isButtonHovered ? 0.7 : 1,
+            transition: "opacity 0.15s",
+          }}
+        >
+          {/* Download SVG */}
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+          </svg>
+          {w >= 480 && "Baixar"}
+        </button>
+      )}
+    </div>
+  );
+}
 // ── Shared module page shell ──────────────────────────────────
 function ModulePage({ navigate, moduleKey, title, icon, accentColor, accentBg, tabs, canEdit }) {
   const { w, isDesktop } = useBreakpoint();
@@ -1488,6 +1581,26 @@ function ModulePage({ navigate, moduleKey, title, icon, accentColor, accentBg, t
   const currentTab   = tabs.find(t => t.key === activeTab);
   const tabDocs      = (MOCK_DOCS[moduleKey] || []).filter(d => !currentTab?.docCat || d.cat === currentTab.docCat);
   const pendingCount = uploadedFiles.filter(f => f.status === "done" && f.tab === activeTab).length;
+  
+  const handleDownload = async (doc) => {
+    try {
+      const dummyContent = `Conteúdo do documento: ${doc.name}\n\nGerado via Intranet.`;
+      const blob = new Blob([dummyContent], { type: 'text/plain' });
+      
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${doc.name}.txt`); // Em produção, mantenha a extensão original
+      document.body.appendChild(link);
+      link.click();
+      
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Erro ao baixar:", error);
+      alert("Não foi possível baixar o documento no momento.");
+    }
+  };
 
   return (
     <div className="fade-up" style={{ minHeight:"calc(100vh - 60px)", background:T.canvas }}>
@@ -1658,7 +1771,7 @@ function ModulePage({ navigate, moduleKey, title, icon, accentColor, accentBg, t
                 <h2 style={{ fontSize:15, fontWeight:700, color:T.dark }}>{currentTab?.label}</h2>
                 <span style={{ fontSize:11, color:T.faint }}>{tabDocs.length} documento{tabDocs.length!==1?"s":""}</span>
               </div>
-              <DocList docs={tabDocs}/>
+              <DocList docs={tabDocs} onDownload={handleDownload} />
             </div>
           </div>
         </div>
@@ -1669,29 +1782,74 @@ function ModulePage({ navigate, moduleKey, title, icon, accentColor, accentBg, t
 
 // ── The three module pages ────────────────────────────────────
 function RHPage({ navigate }) {
-  return <ModulePage navigate={navigate} moduleKey="rh" title="Recursos Humanos"
+  return <ModulePage navigate={navigate} moduleKey="rh" title="Gente e Gestão"
     icon={<ICONS.Users s={22}/>} accentColor="#7c3aed" accentBg="#f5f3ff"
     canEdit={can.editRH}
     tabs={[
-      { key:"beneficios", label:"Benefícios",          docCat:"Benefícios",        icon:<Si d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/> },
-      { key:"ferias",     label:"Férias",               docCat:"Férias",             icon:<Si d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/> },
-      { key:"folha",      label:"Folha de Pagamento",   docCat:"Folha de Pagamento", icon:<Si d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/> },
-      { key:"geral",      label:"Documentos Gerais",    docCat:"Documentos Gerais",  icon:<Si d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6"/> },
+      { key:"escalas",         label:"Escalas dos Colaboradores", docCat:"Escalas",         icon:<Si d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/> },
+      { key:"acoes",           label:"Ações do Mês",              docCat:"Ações",            icon:<Si d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/> },
+      { key:"treinamentos",    label:"Lista de Treinamentos",     docCat:"Treinamentos",     icon:<Si d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/> },
+      { key:"contatos",        label:"Contatos RH/DP/SESMT",      docCat:"Contatos",         icon:<Si d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/> },
+      { key:"aniversariantes", label:"Aniversariantes do Mês",    docCat:"Aniversariantes",  icon:<Si d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/> },
     ]}
   />;
 }
 
 function QualidadePage({ navigate }) {
-  return <ModulePage navigate={navigate} moduleKey="qualidade" title="Qualidade e Segurança"
-    icon={<ICONS.Clip s={22}/>} accentColor="#16a34a" accentBg="#f0fdf4"
-    canEdit={can.editQuality}
-    tabs={[
-      { key:"protocolos", label:"Protocolos",           docCat:"Protocolos",   icon:<Si d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"/> },
-      { key:"indicadores",label:"Indicadores",          docCat:"Indicadores",  icon:<Si d="M18 20V10M12 20V4M6 20v-6"/> },
-      { key:"eventos",    label:"Eventos Adversos",     docCat:"Eventos",      icon:<Si d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"/> },
-      { key:"auditorias", label:"Auditorias",           docCat:"Auditorias",   icon:<Si d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/> },
-    ]}
-  />;
+  const [tab, setTab] = useState('indicadores');
+  return (
+    <div style={{ maxWidth:900, margin:'0 auto', padding:'32px 16px' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:24 }}>
+        <div style={{ background:'#DCFCE7', borderRadius:10, padding:10, display:'flex' }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <div>
+          <h2 style={{ margin:0, fontSize:22, fontWeight:700, color:T.dark }}>Qualidade e Segurança</h2>
+          <p style={{ margin:0, fontSize:13, color:T.muted }}>Indicadores, documentos e formulários</p>
+        </div>
+        <button onClick={() => navigate('home')} style={{ marginLeft:'auto', padding:'8px 16px', fontSize:13, background:T.canvas, border:'1px solid '+T.border, borderRadius:8, cursor:'pointer', color:T.mid }}>← Início</button>
+      </div>
+      <div style={{ display:'flex', gap:4, borderBottom:'2px solid '+T.border, marginBottom:28 }}>
+        {[{k:'indicadores',l:'Indicadores'},{k:'documentos',l:'Documentos da Qualidade'},{k:'formularios',l:'Formulários'}].map(t => (
+          <button key={t.k} onClick={() => setTab(t.k)} style={{ padding:'10px 20px', fontSize:13, fontWeight:tab===t.k?600:400, color:tab===t.k?T.blue:T.muted, background:'transparent', border:'none', cursor:'pointer', borderBottom:tab===t.k?'2px solid '+T.blue:'2px solid transparent', marginBottom:-2 }}>{t.l}</button>
+        ))}
+      </div>
+      {tab==='indicadores' && (
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))', gap:16 }}>
+          {[{label:'Taxa de Infecção Hospitalar',value:'2.3%',color:'#16a34a'},{label:'Satisfação do Paciente',value:'94%',color:T.blue},{label:'Tempo Médio de Atendimento',value:'18 min',color:'#d97706'},{label:'Eventos Adversos',value:'3',color:'#dc2626'}].map((ind,i) => (
+            <div key={i} style={{ background:'#fff', border:'1px solid '+T.border, borderRadius:12, padding:20 }}>
+              <div style={{ fontSize:28, fontWeight:700, color:ind.color }}>{ind.value}</div>
+              <div style={{ fontSize:13, color:T.muted, marginTop:4 }}>{ind.label}</div>
+            </div>
+          ))}
+        </div>
+      )}
+      {tab==='documentos' && (
+        <div style={{ background:'#fff', border:'1px solid '+T.border, borderRadius:12, padding:24 }}>
+          <div style={{ fontWeight:700, fontSize:15, color:T.dark, marginBottom:16 }}>POP — Como Criar um Novo Documento</div>
+          <ol style={{ margin:0, paddingLeft:20, display:'flex', flexDirection:'column', gap:8 }}>
+            {['Ir em Administração → Meus Documentos','Com base em um modelo (POP, Plano, Regimento etc.), clicar no modelo desejado e em Usar o Modelo','O documento vai para a área de Documentos — clicar para abrir','Fazer a digitação do documento novo','Após a digitação, clicar em Salvar','Após salvar, ir em Compartilhar Documento e escolher o arquivo novo criado','No lado direito, compartilhar com SE_Qualidade','Para iniciar o Workflow: clicar em Novo → preencher todas as abas → inserir o documento nas 2 abas → Salvar','Após salvar, o documento estará disponível para verificação e aprovação'].map((s,i) => (
+              <li key={i} style={{ fontSize:13, color:T.mid, lineHeight:1.7 }}>{s}</li>
+            ))}
+          </ol>
+        </div>
+      )}
+      {tab==='formularios' && (
+        <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLSeCFr7s2mJzOa6VII2PqihBuImj1v2dSmBK8EskPYC8AgKuGg/viewform" target="_blank" rel="noopener noreferrer" style={{ display:'flex', alignItems:'center', gap:16, padding:20, background:'#fff', border:'1px solid '+T.border, borderRadius:12, textDecoration:'none' }} onMouseEnter={e=>e.currentTarget.style.boxShadow='0 4px 16px rgba(0,0,0,0.08)'} onMouseLeave={e=>e.currentTarget.style.boxShadow='none'}>
+            <div style={{ background:'#FEF3C7', borderRadius:10, padding:12, display:'flex' }}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+            <div><div style={{ fontWeight:600, fontSize:14, color:T.dark }}>Canal de Compliance</div><div style={{ fontSize:12, color:T.muted, marginTop:2 }}>Reporte irregularidades de forma segura e confidencial</div></div>
+            <svg style={{ marginLeft:'auto', opacity:0.4 }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+          </a>
+          <a href="https://docs.google.com/forms/d/e/1FAIpQLSf_v7Po6iBEqKX35hoQGvUMWDXbcaF7djnA6tQPaNaoCaKLtQ/viewform" target="_blank" rel="noopener noreferrer" style={{ display:'flex', alignItems:'center', gap:16, padding:20, background:'#fff', border:'1px solid '+T.border, borderRadius:12, textDecoration:'none' }} onMouseEnter={e=>e.currentTarget.style.boxShadow='0 4px 16px rgba(0,0,0,0.08)'} onMouseLeave={e=>e.currentTarget.style.boxShadow='none'}>
+            <div style={{ background:'#FEE2E2', borderRadius:10, padding:12, display:'flex' }}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+            <div><div style={{ fontWeight:600, fontSize:14, color:T.dark }}>Ocorrência - Segurança do Paciente</div><div style={{ fontSize:12, color:T.muted, marginTop:2 }}>Notifique eventos adversos e incidentes de segurança</div></div>
+            <svg style={{ marginLeft:'auto', opacity:0.4 }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+          </a>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function SuportePage({ navigate }) {
@@ -1727,6 +1885,31 @@ function AdminPanel({ navigate }) {
       </div>
     );
   }
+
+  // Handle download for regular documents (not links)
+  const handleDownload = async (doc) => {
+    try {
+      // For demo purposes with mock data, create a dummy download
+      const dummyContent = `Documento: ${doc.name}\nCategoria: ${doc.cat}\nTamanho: ${doc.size || 'N/A'}\nData: ${doc.date}`;
+      const blob = new Blob([dummyContent], { type: 'text/plain' });
+      
+      // Create temporary link for download
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${doc.name.replace(/[^a-zA-Z0-9.-]/g, '_')}.txt`);
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+    } catch (error) {
+      console.error("Erro ao baixar o documento:", error);
+      alert("Não foi possível baixar o documento no momento.");
+    }
+  };
 
   const adminModules = [
     { key:"rh",    label:"RH",        color:"#7c3aed", bg:"#f5f3ff", icon:<ICONS.Users s={18}/>,  uploadKey:"rh" },
@@ -1815,7 +1998,7 @@ function AdminPanel({ navigate }) {
               <div style={{ fontSize:13, fontWeight:700, color:T.dark, marginBottom:12 }}>
                 Documentos publicados em {mod.label}
               </div>
-              <DocList docs={MOCK_DOCS[mod.uploadKey] || []}/>
+              <DocList docs={MOCK_DOCS[mod.uploadKey] || []} onDownload={handleDownload}/>
             </div>
           </div>
         )}
