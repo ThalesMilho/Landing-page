@@ -300,7 +300,7 @@ function Header({ page, navigate }) {
     { label:"Formulários", p:"qualidade", tab:"formularios" },
   ]},
   { label:"Procedimentos e Ramais", p:"ramais", children:[
-    { label:"Catálogo de Ramais", external:"https://docs.google.com/spreadsheets/d/1DmqEfls0WleuTSe4UtiU5RTno5dQG6TIMINAxYApCzw/edit?gid=0#gid=0" },
+    { label:"Catálogo de Ramais", external:"/ramais.pdf" },
     { label:"Procedimentos (POPs)", p:"procedimentos" },
   ]},
   { label:"Canais FUBOG", p:"canais", children:[
