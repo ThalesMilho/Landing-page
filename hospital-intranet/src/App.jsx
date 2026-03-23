@@ -1213,7 +1213,7 @@ function UploadModulePage({ navigate, moduleKey, title, icon, accentColor, accen
   return (
     <div className="fade-up" style={{ minHeight:"calc(100vh - 60px)", background:T.canvas }}>
       <div style={{
-        maxWidth:900, margin:"0 auto",
+        maxWidth:1400, margin:"0 auto",
         padding: w < 480 ? "22px 14px 52px" : w < 768 ? "28px 20px 56px" : "40px 32px 64px",
       }}>
 
@@ -1605,7 +1605,7 @@ function ModulePage({ navigate, moduleKey, title, icon, accentColor, accentBg, t
   return (
     <div className="fade-up" style={{ minHeight:"calc(100vh - 60px)", background:T.canvas }}>
       <div style={{
-        maxWidth:1000, margin:"0 auto",
+        maxWidth:1400, margin:"0 auto",
         padding: w < 480 ? "22px 14px 52px" : w < 768 ? "28px 20px 56px" : "40px 32px 64px",
       }}>
 
@@ -1923,7 +1923,7 @@ function AdminPanel({ navigate }) {
 
   return (
     <div className="fade-up" style={{ minHeight:"calc(100vh-60px)", background:T.canvas }}>
-      <div style={{ maxWidth:1000, margin:"0 auto", padding: w<480?"20px 14px 48px":"36px 32px 64px" }}>
+      <div style={{ maxWidth:1400, margin:"0 auto", padding: w<480?"20px 14px 48px":"36px 32px 64px" }}>
 
         {/* Header */}
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:24, flexWrap:"wrap", gap:12 }}>
