@@ -321,7 +321,7 @@ function Header({ page, navigate }) {
       boxShadow:"0 1px 3px rgba(0,0,0,0.06)",
     }}>
       <div style={{
-        maxWidth:1200, margin:"0 auto",
+        width:"100%", boxSizing:"border-box",
         padding: w < 640 ? "0 14px" : w < 1024 ? "0 24px" : "0 40px",
         height:h, display:"flex", alignItems:"center",
         justifyContent:"space-between", gap:12,
@@ -786,7 +786,7 @@ function Home({ navigate }) {
 
   return (
     <main style={{
-      maxWidth:1200, margin:"0 auto",
+      width:"100%", boxSizing:"border-box",
       padding: w < 480 ? "22px 14px 52px"
              : w < 640 ? "28px 20px 56px"
              : w < 1024 ? "36px 24px 60px"
