@@ -6,7 +6,7 @@
  * ║  ─ Login screen removed — auth handled by backend + MSAL    ║
  * ╚══════════════════════════════════════════════════════════════╝
  */
-import { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 // ══════════════════════════════════════════════════════════════
 // 1. DESIGN TOKENS
@@ -34,7 +34,7 @@ const T = {
 // ══════════════════════════════════════════════════════════════
 function useBreakpoint() {
   const getW = () => (typeof window !== "undefined" ? window.innerWidth : 1024);
-  const [w, setW] = useState(getW);
+  const [w, setW] = React.useState(getW);
   useEffect(() => {
     const fn = () => setW(window.innerWidth);
     window.addEventListener("resize", fn);
@@ -73,9 +73,6 @@ const CURRENT_USER = {
   displayName: "Colaborador",
   givenName:   "Colaborador",
   surname:     "",
-  jobTitle:    "Médico Clínico",
-  department:  "Clínica Geral",
-  mail:        "dr.silva@hospital.com",
   initials:    "CO",
   avatarColor: "linear-gradient(135deg,#1a56db,#60a5fa)",
 
@@ -210,7 +207,7 @@ const LogoMark = ({ size=36 }) => (
 // 7. HEADER
 // ══════════════════════════════════════════════════════════════
 function NavDropdown({ item, page, go, T }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = React.useState(false);
   const ref = useRef(null);
   useEffect(() => {
     function handle(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
@@ -280,24 +277,18 @@ function NavDropdown({ item, page, go, T }) {
 function Header({ page, navigate }) {
   const user = CURRENT_USER;
   const { isMobile, isXs, w }     = useBreakpoint();
-  const [open, setOpen]   = useState(false);
-  const [uMenu, setUMenu] = useState(false);
+  const [open, setOpen]   = React.useState(false);
+  const [uMenu, setUMenu] = React.useState(false);
 
   const go = (p) => { navigate(p); setOpen(false); setUMenu(false); };
 
   const navItems = [
   { label:"Início", p:"home" },
-  { label:"Gente e Gestão", p:"rh", children:[
-    { label:"Escalas dos Colaboradores", p:"rh", tab:"escalas" },
-    { label:"Ações do Mês", p:"rh", tab:"acoes" },
-    { label:"Lista de Treinamentos", p:"rh", tab:"treinamentos" },
-    { label:"Contatos RH/DP/SESMT", p:"rh", tab:"contatos" },
-    { label:"Aniversariantes do Mês", p:"rh", tab:"aniversariantes" },
-  ]},
+  { label:"Gente e Gestão", p:"rh" },
   { label:"Qualidade e Segurança", p:"qualidade", children:[
     { label:"Indicadores", p:"qualidade", tab:"indicadores" },
     { label:"Documentos da Qualidade", p:"qualidade", tab:"protocolos" },
-    { label:"Formulários", p:"qualidade", tab:"formularios" },
+    { label:"Notificações", p:"qualidade", tab:"notificacoes" },
   ]},
   { label:"Procedimentos e Ramais", p:"ramais", children:[
     { label:"Catálogo de Ramais", external:"/ramais.pdf" },
@@ -308,7 +299,7 @@ function Header({ page, navigate }) {
     { label:"Canal NPS", p:"canais" },
     { label:"Canal de Compliance", external:"https://docs.google.com/forms/d/e/1FAIpQLSeCFr7s2mJzOa6VII2PqihBuImj1v2dSmBK8EskPYC8AgKuGg/viewform" },
   ]},
-  { label:"Suporte T.I.", p:"suporte", external:"http://ares/front/central.php" },
+  { label:"Suporte T.I.", p:"suporte", external:"http://2401prd.cloudmv.com.br/soul-mv/?" },
 ];
 
   const h = w < 640 ? 54 : 60;
@@ -562,7 +553,7 @@ function Header({ page, navigate }) {
 // ══════════════════════════════════════════════════════════════
 function SearchBar() {
   const { isXs, isSm } = useBreakpoint();
-  const [focused, setFocused] = useState(false);
+  const [focused, setFocused] = React.useState(false);
   const showShortcut = !isXs && !isSm;
 
   return (
@@ -686,7 +677,7 @@ function Sidebar() {
   ];
 
   const links = [
-    { label:"GLPI",         url:"http://ares/front/central.php" },
+    { label:"Suporte T.I.", url:"http://2401prd.cloudmv.com.br/soul-mv/?" },
     { label:"Soul MV",      url:"http://2220prd.cloudmv.com.br/mvautenticador-cas/login?service=http%3A%2F%2F2220prd.cloudmv.com.br%3A80%2Fsoul-mv%2Fcas" },
     { label:"Cartão de Ponto",  url:"https://www.rhid.com.br/v2/" },
   ];
@@ -993,8 +984,8 @@ function getFileIcon(name) {
 // Reusable upload zone + file list component
 function FileUploadZone({ moduleKey, uploadedFiles, setUploadedFiles }) {
   const cfg = UPLOAD_CONFIGS[moduleKey];
-  const [dragging, setDragging] = useState(false);
-  const [errors, setErrors]     = useState([]);
+  const [dragging, setDragging] = React.useState(false);
+  const [errors, setErrors]     = React.useState([]);
   const inputRef = useRef();
 
   const validate = (file) => {
@@ -1206,8 +1197,8 @@ function FileUploadZone({ moduleKey, uploadedFiles, setUploadedFiles }) {
 // ── Page shell shared by all three upload modules ─────────────
 function UploadModulePage({ navigate, moduleKey, title, icon, accentColor, accentBg, categories }) {
   const { w } = useBreakpoint();
-  const [activeTab, setActiveTab]       = useState(categories[0]?.key);
-  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [activeTab, setActiveTab]       = React.useState(categories[0]?.key);
+  const [uploadedFiles, setUploadedFiles] = React.useState([]);
   const doneCount = uploadedFiles.filter(f => f.status === "done").length;
 
   return (
@@ -1394,38 +1385,13 @@ const Si = ({ d, s=15 }) => (
 
 // ── Simulated document library per module ────────────────────
 const MOCK_DOCS = {
-  rh: [
-    { id:101, name:"Abrir Escala Atual — Pronto Socorro", cat:"Escalas", date:"Sempre atualizado", url:"/escalas/escala-pronto-socorro.pdf" },
-    { id:102, name:"Abrir Escala Atual — CME",            cat:"Escalas", date:"Sempre atualizado", url:"/escalas/escala-cme.pdf" },
-    { id:1, name:"Política de Benefícios", cat:"Políticas", date:"2024-01-15", size:"2.4 MB", icon:<Si d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z" />, desc:"Diretrizes completas de benefícios para colaboradores" },
-    { id:2, name:"Guia de Férias", cat:"Políticas", date:"2024-02-01", size:"1.8 MB", icon:<Si d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2 2z" />, desc:"Procedimentos e prazos para solicitação de férias" },
-    { id:3, name:"Manual de Integração", cat:"Políticas", date:"2024-01-20", size:"5.2 MB", icon:<Si d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />, desc:"Processos de onboarding e cultura organizacional" },
-    { id:4, name:"Código de Conduta", cat:"Políticas", date:"2024-01-10", size:"1.2 MB", icon:<Si d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />, desc:"Normas de conduta e ética profissional" },
-    { id:5, name:"Formulário de Solicitação", cat:"Formulários", date:"2024-03-01", size:"156 KB", icon:<Si d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />, desc:"Solicitação de benefícios e autorizações" },
-    { id:6, name:"Declaração de Vínculo", cat:"Formulários", date:"2024-02-15", size:"98 KB", icon:<Si d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />, desc:"Declaração de vínculo empregatício para fins diversos" },
-    { id:7, name:"Atestado de Frequência", cat:"Formulários", date:"2024-03-10", size:"112 KB", icon:<Si d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />, desc:"Atestado de frequência para benefícios sociais" },
-    { id:8, name:"Treinamento de Segurança", cat:"Treinamentos", date:"2024-01-25", size:"3.1 MB", icon:<Si d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />, desc:"Procedimentos de segurança do trabalho" },
-    { id:9, name:"Treinamento de Primeiros Socorros", cat:"Treinamentos", date:"2024-02-20", size:"4.7 MB", icon:<Si d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />, desc:"Atendimento de emergências médicas" },
-    { id:10, name:"Capacitação em Atendimento ao Paciente", cat:"Treinamentos", date:"2024-03-05", size:"2.8 MB", icon:<Si d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />, desc:"Técnicas de comunicação e humanização" },
-    { id:11, name:"Contatos RH", cat:"Contatos", date:"2024-01-01", size:"45 KB", icon:<Si d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />, desc:"E-mails e telefones do departamento de RH" },
-    { id:12, name:"Contatos DP", cat:"Contatos", date:"2024-01-01", size:"38 KB", icon:<Si d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />, desc:"Departamento Pessoal contatos e horários" },
-    { id:13, name:"Contatos SESMT", cat:"Contatos", date:"2024-01-01", size:"42 KB", icon:<Si d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />, desc:"Serviços Especializados em Engenharia de Segurança e Medicina do Trabalho" },
-    { id:14, name:"Aniversariantes - Janeiro", cat:"Aniversariantes", date:"2024-01-01", size:"125 KB", icon:<Si d="M12 8v13m0-13V6a2 2 0 112 2h-2z" />, desc:"Colaboradores fazendo aniversário em janeiro" },
-    { id:15, name:"Aniversariantes - Fevereiro", cat:"Aniversariantes", date:"2024-02-01", size:"118 KB", icon:<Si d="M12 8v13m0-13V6a2 2 0 112 2h-2z" />, desc:"Colaboradores fazendo aniversário em fevereiro" },
-    { id:16, name:"Aniversariantes - Março", cat:"Aniversariantes", date:"2024-03-01", size:"132 KB", icon:<Si d="M12 8v13m0-13V6a2 2 0 112 2h-2z" />, desc:"Colaboradores fazendo aniversário em março" },
-  ],
-  qualidade: [
-    { id:1, name:"Protocolo Sepse v4.2.pdf",               size:520000, cat:"Protocolos",          date:"01/02/2025", author:"Qualidade" },
-    { id:2, name:"Indicadores Março 2025.xlsx",            size:145000, cat:"Indicadores",         date:"01/04/2025", author:"Qualidade" },
-    { id:3, name:"Notificação Evento Adverso — Modelo.pdf",size:88000,  cat:"Eventos",             date:"12/03/2025", author:"Qualidade" },
-    { id:4, name:"Checklist Auditoria Leitos.docx",        size:210000, cat:"Auditorias",          date:"18/02/2025", author:"Qualidade" },
-    { id:5, name:"Protocolo Higienização Mãos v3.pdf",     size:340000, cat:"Protocolos",          date:"05/01/2025", author:"Qualidade" },
-  ],
+  rh: [],
+  qualidade: [],
   suporte: [
     { id:1, name:"Manual VPN Hospital.pdf",                size:430000, cat:"Infraestrutura",      date:"10/12/2024", author:"T.I." },
-    { id:2, name:"Formulário Solicitação de Acesso.docx",  size:65000,  cat:"Acessos",             date:"02/01/2025", author:"T.I." },
-    { id:3, name:"Política de Segurança da Informação.pdf",size:620000, cat:"Segurança",           date:"15/01/2025", author:"T.I." },
-    { id:4, name:"Guia Impressoras — Configuração.pdf",    size:195000, cat:"Equipamentos",        date:"20/02/2025", author:"T.I." },
+    { id:2, name:"Guia de Acesso Sistemas.pdf",           size:280000, cat:"Acessos",           date:"15/12/2024", author:"T.I." },
+    { id:3, name:"Política de Senhas.docx",                size:145000, cat:"Segurança",          date:"20/11/2024", author:"T.I." },
+    { id:4, name:"Formulário Solicitação Equipamento.pdf", size:195000, cat:"Equipamentos",       date:"08/12/2024", author:"T.I." },
   ],
 };
 
@@ -1457,8 +1423,8 @@ export function DocList({ docs, onDownload }) {
 // ── Individual Document Item ───────────────────────────────────
 function DocListItem({ doc, w, onDownload }) {
   // Safe React states for hovers
-  const [isButtonHovered, setIsButtonHovered] = useState(false);
-  const [isTextHovered, setIsTextHovered] = useState(false);
+  const [isButtonHovered, setIsButtonHovered] = React.useState(false);
+  const [isTextHovered, setIsTextHovered] = React.useState(false);
   
   const ic = getFileIcon(doc?.name || "");
   const isLink = !!doc?.url;
@@ -1574,9 +1540,9 @@ function DocListItem({ doc, w, onDownload }) {
 // ── Shared module page shell ──────────────────────────────────
 function ModulePage({ navigate, moduleKey, title, icon, accentColor, accentBg, tabs, canEdit }) {
   const { w, isDesktop } = useBreakpoint();
-  const [activeTab, setActiveTab]           = useState(tabs[0]?.key);
-  const [uploadedFiles, setUploadedFiles]   = useState([]);
-  const [showUpload, setShowUpload]         = useState(false);
+  const [activeTab, setActiveTab]           = React.useState(tabs[0]?.key);
+  const [uploadedFiles, setUploadedFiles]   = React.useState([]);
+  const [showUpload, setShowUpload]         = React.useState(false);
 
   const currentTab   = tabs.find(t => t.key === activeTab);
   const tabDocs      = (MOCK_DOCS[moduleKey] || []).filter(d => !currentTab?.docCat || d.cat === currentTab.docCat);
@@ -1796,7 +1762,56 @@ function RHPage({ navigate }) {
 }
 
 function QualidadePage({ navigate }) {
-  const [tab, setTab] = useState('indicadores');
+  const [tab, setTab] = React.useState('indicadores');
+  const [popText, setPopText] = React.useState(() => localStorage.getItem('fubog_pop_texto') || '');
+  const [indicators, setIndicators] = React.useState(() => {
+    const saved = localStorage.getItem('fubog_indicadores');
+    return saved ? JSON.parse(saved) : [
+      {label:'Taxa de Infecção Hospitalar', value:'2.3%', color:'#16a34a'},
+      {label:'Satisfação do Paciente', value:'94%', color:T.blue},
+      {label:'Tempo Médio de Atendimento', value:'18 min', color:'#d97706'},
+      {label:'Eventos Adversos', value:'3', color:'#dc2626'}
+    ];
+  });
+
+  // Listen for POP updates from admin
+  React.useEffect(() => {
+    const handlePopUpdate = (e) => {
+      setPopText(e.detail);
+    };
+
+    const handleIndicatorsUpdate = (e) => {
+      setIndicators(e.detail);
+    };
+
+    window.addEventListener('popUpdated', handlePopUpdate);
+    window.addEventListener('indicatorsUpdated', handleIndicatorsUpdate);
+
+    // Also check localStorage periodically
+    const interval = setInterval(() => {
+      const currentPopText = localStorage.getItem('fubog_pop_texto') || '';
+      const currentIndicators = localStorage.getItem('fubog_indicadores');
+      
+      if (currentPopText !== popText) {
+        setPopText(currentPopText);
+      }
+      
+      if (currentIndicators) {
+        try {
+          const parsed = JSON.parse(currentIndicators);
+          setIndicators(parsed);
+        } catch (e) {
+          console.error('Error parsing indicators:', e);
+        }
+      }
+    }, 1000);
+
+    return () => {
+      window.removeEventListener('popUpdated', handlePopUpdate);
+      window.removeEventListener('indicatorsUpdated', handleIndicatorsUpdate);
+      clearInterval(interval);
+    };
+  }, [popText]);
   return (
     <div style={{ maxWidth:900, margin:'0 auto', padding:'32px 16px' }}>
       <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:24 }}>
@@ -1810,13 +1825,13 @@ function QualidadePage({ navigate }) {
         <button onClick={() => navigate('home')} style={{ marginLeft:'auto', padding:'8px 16px', fontSize:13, background:T.canvas, border:'1px solid '+T.border, borderRadius:8, cursor:'pointer', color:T.mid }}>← Início</button>
       </div>
       <div style={{ display:'flex', gap:4, borderBottom:'2px solid '+T.border, marginBottom:28 }}>
-        {[{k:'indicadores',l:'Indicadores'},{k:'documentos',l:'Documentos da Qualidade'},{k:'formularios',l:'Formulários'}].map(t => (
+        {[{k:'indicadores',l:'Indicadores'},{k:'avisos',l:'Avisos'},{k:'documentos',l:'Documentos da Qualidade'}].map(t => (
           <button key={t.k} onClick={() => setTab(t.k)} style={{ padding:'10px 20px', fontSize:13, fontWeight:tab===t.k?600:400, color:tab===t.k?T.blue:T.muted, background:'transparent', border:'none', cursor:'pointer', borderBottom:tab===t.k?'2px solid '+T.blue:'2px solid transparent', marginBottom:-2 }}>{t.l}</button>
         ))}
       </div>
       {tab==='indicadores' && (
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))', gap:16 }}>
-          {[{label:'Taxa de Infecção Hospitalar',value:'2.3%',color:'#16a34a'},{label:'Satisfação do Paciente',value:'94%',color:T.blue},{label:'Tempo Médio de Atendimento',value:'18 min',color:'#d97706'},{label:'Eventos Adversos',value:'3',color:'#dc2626'}].map((ind,i) => (
+          {indicators.map((ind,i) => (
             <div key={i} style={{ background:'#fff', border:'1px solid '+T.border, borderRadius:12, padding:20 }}>
               <div style={{ fontSize:28, fontWeight:700, color:ind.color }}>{ind.value}</div>
               <div style={{ fontSize:13, color:T.muted, marginTop:4 }}>{ind.label}</div>
@@ -1824,28 +1839,36 @@ function QualidadePage({ navigate }) {
           ))}
         </div>
       )}
-      {tab==='documentos' && (
+      {tab==='avisos' && (
         <div style={{ background:'#fff', border:'1px solid '+T.border, borderRadius:12, padding:24 }}>
-          <div style={{ fontWeight:700, fontSize:15, color:T.dark, marginBottom:16 }}>POP — Como Criar um Novo Documento</div>
-          <ol style={{ margin:0, paddingLeft:20, display:'flex', flexDirection:'column', gap:8 }}>
-            {['Ir em Administração → Meus Documentos','Com base em um modelo (POP, Plano, Regimento etc.), clicar no modelo desejado e em Usar o Modelo','O documento vai para a área de Documentos — clicar para abrir','Fazer a digitação do documento novo','Após a digitação, clicar em Salvar','Após salvar, ir em Compartilhar Documento e escolher o arquivo novo criado','No lado direito, compartilhar com SE_Qualidade','Para iniciar o Workflow: clicar em Novo → preencher todas as abas → inserir o documento nas 2 abas → Salvar','Após salvar, o documento estará disponível para verificação e aprovação'].map((s,i) => (
-              <li key={i} style={{ fontSize:13, color:T.mid, lineHeight:1.7 }}>{s}</li>
-            ))}
-          </ol>
+          <div style={{ fontWeight:700, fontSize:15, color:T.dark, marginBottom:16 }}>POP — Procedimentos Operacionais Padrão</div>
+          {popText ? (
+            <div style={{ whiteSpace:'pre-line', lineHeight:1.7, color:T.mid }}>
+              {popText.split('\n').map((line, i) => (
+                <div key={i} style={{ marginBottom: i < popText.split('\n').length - 1 ? 8 : 0 }}>
+                  {line.startsWith('•') || /^\d+\./.test(line) ? (
+                    <div style={{ paddingLeft: 20 }}>
+                      {line}
+                    </div>
+                  ) : (
+                    line
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ color:T.muted, fontSize:13, fontStyle:'italic' }}>
+              Nenhum POP publicado ainda. A equipe de qualidade irá publicar os procedimentos em breve.
+            </div>
+          )}
         </div>
       )}
-      {tab==='formularios' && (
-        <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-          <a href="https://docs.google.com/forms/d/e/1FAIpQLSeCFr7s2mJzOa6VII2PqihBuImj1v2dSmBK8EskPYC8AgKuGg/viewform" target="_blank" rel="noopener noreferrer" style={{ display:'flex', alignItems:'center', gap:16, padding:20, background:'#fff', border:'1px solid '+T.border, borderRadius:12, textDecoration:'none' }} onMouseEnter={e=>e.currentTarget.style.boxShadow='0 4px 16px rgba(0,0,0,0.08)'} onMouseLeave={e=>e.currentTarget.style.boxShadow='none'}>
-            <div style={{ background:'#FEF3C7', borderRadius:10, padding:12, display:'flex' }}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-            <div><div style={{ fontWeight:600, fontSize:14, color:T.dark }}>Canal de Compliance</div><div style={{ fontSize:12, color:T.muted, marginTop:2 }}>Reporte irregularidades de forma segura e confidencial</div></div>
-            <svg style={{ marginLeft:'auto', opacity:0.4 }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
-          </a>
-          <a href="https://docs.google.com/forms/d/e/1FAIpQLSf_v7Po6iBEqKX35hoQGvUMWDXbcaF7djnA6tQPaNaoCaKLtQ/viewform" target="_blank" rel="noopener noreferrer" style={{ display:'flex', alignItems:'center', gap:16, padding:20, background:'#fff', border:'1px solid '+T.border, borderRadius:12, textDecoration:'none' }} onMouseEnter={e=>e.currentTarget.style.boxShadow='0 4px 16px rgba(0,0,0,0.08)'} onMouseLeave={e=>e.currentTarget.style.boxShadow='none'}>
-            <div style={{ background:'#FEE2E2', borderRadius:10, padding:12, display:'flex' }}><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
-            <div><div style={{ fontWeight:600, fontSize:14, color:T.dark }}>Ocorrência - Segurança do Paciente</div><div style={{ fontSize:12, color:T.muted, marginTop:2 }}>Notifique eventos adversos e incidentes de segurança</div></div>
-            <svg style={{ marginLeft:'auto', opacity:0.4 }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
-          </a>
+      {tab==='documentos' && (
+        <div>
+          <DocList docs={MOCK_DOCS.qualidade || []} onDownload={(doc) => {
+            console.log('Download:', doc);
+            alert(`Baixando: ${doc.name}`);
+          }}/>
         </div>
       )}
     </div>
@@ -1868,43 +1891,108 @@ function SuportePage({ navigate }) {
 // ══════════════════════════════════════════════════════════════
 // 18. ADMIN PANEL  (IT admins only — not linked from nav or cards)
 // ══════════════════════════════════════════════════════════════
+function QualidadeAdminEditor() {
+  const defaultInds = [
+    {label:'Taxa de Infecção Hospitalar', value:'2.3%', color:'#16a34a'},
+    {label:'Satisfação do Paciente',      value:'94%',  color:'#1a56db'},
+    {label:'Tempo Médio de Atendimento',  value:'18 min',color:'#d97706'},
+    {label:'Eventos Adversos',            value:'3',    color:'#dc2626'},
+  ];
+  const [inds, setInds] = React.useState(() => JSON.parse(localStorage.getItem('fubog_indicadores') || 'null') || defaultInds);
+  const [pop,  setPop]  = React.useState(() => localStorage.getItem('fubog_pop_texto') || '');
+  const [indSaved, setIndSaved] = React.useState(false);
+  const [popSaved, setPopSaved] = React.useState(false);
+
+  function saveInds() {
+    localStorage.setItem('fubog_indicadores', JSON.stringify(inds));
+    setIndSaved(true);
+    setTimeout(() => setIndSaved(false), 2000);
+  }
+  function savePop() {
+    localStorage.setItem('fubog_pop_texto', pop);
+    setPopSaved(true);
+    setTimeout(() => setPopSaved(false), 2000);
+  }
+
+  return (
+    <div style={{ marginTop:24, display:'flex', flexDirection:'column', gap:20 }}>
+
+      {/* Indicators editor */}
+      <div style={{ background:'#F0FDF4', border:'1px solid #86EFAC', borderRadius:12, padding:20 }}>
+        <div style={{ fontWeight:700, fontSize:14, color:'#15803d', marginBottom:14 }}>
+          📊 Editar Indicadores de Qualidade
+        </div>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', gap:12 }}>
+          {inds.map((ind, i) => (
+            <div key={i} style={{ background:'#fff', borderRadius:10, padding:14, border:'1px solid #BBF7D0' }}>
+              <div style={{ fontSize:11, color:'#15803d', fontWeight:600, marginBottom:6 }}>{ind.label}</div>
+              <input
+                value={ind.value}
+                onChange={e => {
+                  const updated = [...inds];
+                  updated[i] = {...updated[i], value: e.target.value};
+                  setInds(updated);
+                }}
+                style={{ width:'100%', padding:'8px 10px', borderRadius:7, border:'1px solid #D1FAE5',
+                  fontSize:16, fontWeight:700, color:ind.color, boxSizing:'border-box' }}
+              />
+            </div>
+          ))}
+        </div>
+        <button onClick={saveInds} style={{
+          marginTop:14, padding:'9px 20px', borderRadius:8,
+          background: indSaved ? '#15803d' : '#16a34a', color:'#fff',
+          fontSize:13, fontWeight:600, border:'none', cursor:'pointer',
+        }}>
+          {indSaved ? '✓ Salvo!' : 'Salvar Indicadores'}
+        </button>
+      </div>
+
+      {/* POP editor */}
+      <div style={{ background:'#EFF6FF', border:'1px solid #93C5FD', borderRadius:12, padding:20 }}>
+        <div style={{ fontWeight:700, fontSize:14, color:'#1d4ed8', marginBottom:6 }}>
+          📄 Editor de POP — Documentos da Qualidade
+        </div>
+        <div style={{ fontSize:12, color:'#3b82f6', marginBottom:12 }}>
+          O texto abaixo aparece na aba "Documentos da Qualidade" para todos os colaboradores.
+        </div>
+        <textarea
+          value={pop}
+          onChange={e => setPop(e.target.value)}
+          rows={10}
+          placeholder="Cole ou escreva o POP aqui. Use linhas separadas para cada passo."
+          style={{ width:'100%', padding:'12px', borderRadius:8, border:'1px solid #BFDBFE',
+            fontSize:13, lineHeight:1.7, boxSizing:'border-box', resize:'vertical', fontFamily:'inherit' }}
+        />
+        <button onClick={savePop} style={{
+          marginTop:10, padding:'9px 20px', borderRadius:8,
+          background: popSaved ? '#1d4ed8' : '#2563eb', color:'#fff',
+          fontSize:13, fontWeight:600, border:'none', cursor:'pointer',
+        }}>
+          {popSaved ? '✓ Publicado!' : 'Publicar POP'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function AdminPanel({ navigate }) {
   const { w } = useBreakpoint();
-  if (!can.admin) {
-    return (
-      <div style={{ minHeight:"calc(100vh-60px)", display:"flex", alignItems:"center", justifyContent:"center", padding:24 }}>
-        <div style={{ textAlign:"center", maxWidth:360 }}>
-          <div style={{ fontSize:48, marginBottom:16 }}>🔒</div>
-          <h2 style={{ fontSize:18, fontWeight:700, color:T.dark, marginBottom:8 }}>Acesso Negado</h2>
-          <p style={{ fontSize:13, color:T.muted, marginBottom:20 }}>Esta área é restrita ao grupo <strong>Intranet.Admin</strong> no Active Directory.</p>
-          <button onClick={() => navigate("home")} style={{
-            padding:"10px 22px", borderRadius:9, background:T.blue, color:"#fff",
-            fontSize:13, fontWeight:600, border:"none", cursor:"pointer",
-          }}>Voltar ao Início</button>
-        </div>
-      </div>
-    );
-  }
+  // admin guard removed for MVP — access via ?page=admin
 
   // Handle download for regular documents (not links)
   const handleDownload = async (doc) => {
     try {
-      // For demo purposes with mock data, create a dummy download
-      const dummyContent = `Documento: ${doc.name}\nCategoria: ${doc.cat}\nTamanho: ${doc.size || 'N/A'}\nData: ${doc.date}`;
+      const dummyContent = `Conteúdo do documento: ${doc.name}\n\nGerado via Intranet.`;
       const blob = new Blob([dummyContent], { type: 'text/plain' });
-      
-      // Create temporary link for download
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', `${doc.name.replace(/[^a-zA-Z0-9.-]/g, '_')}.txt`);
       document.body.appendChild(link);
       link.click();
-      
-      // Cleanup
       link.parentNode.removeChild(link);
       window.URL.revokeObjectURL(url);
-      
     } catch (error) {
       console.error("Erro ao baixar o documento:", error);
       alert("Não foi possível baixar o documento no momento.");
@@ -1912,12 +2000,22 @@ function AdminPanel({ navigate }) {
   };
 
   const adminModules = [
-    { key:"rh",    label:"RH",        color:"#7c3aed", bg:"#f5f3ff", icon:<ICONS.Users s={18}/>,  uploadKey:"rh" },
+    { key:"rh",    label:"Gente e Gestão", color:"#7c3aed", bg:"#f5f3ff", icon:<ICONS.Users s={18}/>,  uploadKey:"rh" },
     { key:"qual",  label:"Qualidade", color:"#16a34a", bg:"#f0fdf4", icon:<ICONS.Clip s={18}/>,   uploadKey:"qualidade" },
-    { key:"ti",    label:"T.I.",      color:"#475569", bg:"#f8fafc", icon:<ICONS.Wrench s={18}/>, uploadKey:"suporte" },
   ];
-  const [activeMod, setActiveMod]     = useState("rh");
-  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [activeMod, setActiveMod]     = React.useState("rh");
+  const [uploadedFiles, setUploadedFiles] = React.useState([]);
+  const [fileNames, setFileNames] = React.useState({}); // Store custom names for files
+  const [fileCategories, setFileCategories] = React.useState({}); // Store categories for RH files
+  const [indicators, setIndicators] = React.useState(() => {
+    const saved = localStorage.getItem('fubog_indicadores');
+    return saved ? JSON.parse(saved) : [
+      {label:'Taxa de Infecção Hospitalar', value:'2.3%', color:'#16a34a'},
+      {label:'Satisfação do Paciente', value:'94%', color:'#1a56db'},
+      {label:'Tempo Médio de Atendimento', value:'18 min', color:'#d97706'},
+      {label:'Eventos Adversos', value:'3', color:'#dc2626'}
+    ];
+  });
   const mod = adminModules.find(m => m.key === activeMod);
   const doneCt = uploadedFiles.filter(f => f.status==="done" && f.mod===activeMod).length;
 
@@ -1968,6 +2066,211 @@ function AdminPanel({ navigate }) {
                 Documentos publicados ficam visíveis para todos os colaboradores com acesso ao módulo.
               </p>
             </div>
+            
+            {/* POP Editor for Quality Team */}
+            {mod.key === "qual" && (
+              <div style={{ marginBottom:24, padding:20, background:'#F0FDF4', border:'1px solid #86EFAC', borderRadius:12 }}>
+                <div style={{ fontWeight:700, fontSize:14, color:'#15803d', marginBottom:12 }}>
+                  📄 Editor de POP — Documentos da Qualidade
+                </div>
+                <div style={{ fontSize:12, color:'#16a34a', marginBottom:12 }}>
+                  O texto abaixo aparecerá na aba "Documentos da Qualidade" para todos os colaboradores.
+                </div>
+                <textarea
+                  key={mod.key} // Force re-render when switching modules
+                  defaultValue={localStorage.getItem('fubog_pop_texto') || ''}
+                  onChange={e => {
+                    localStorage.setItem('fubog_pop_texto', e.target.value);
+                    // Trigger update for QualidadePage
+                    const event = new CustomEvent('popUpdated', { detail: e.target.value });
+                    window.dispatchEvent(event);
+                  }}
+                  rows={8}
+                  placeholder="Digite o POP aqui. Use linhas separadas para cada passo."
+                  style={{ 
+                    width:'100%', 
+                    maxWidth:'100%',
+                    minWidth:'100%',
+                    padding:'12px', 
+                    borderRadius:8, 
+                    border:'1px solid #BBF7D0',
+                    fontSize:14, 
+                    lineHeight:1.6, 
+                    boxSizing:'border-box', 
+                    resize:'vertical', 
+                    fontFamily:'inherit',
+                    background:'#fff',
+                    outline:'none',
+                    minHeight:'120px',
+                    display:'block',
+                    color:'#374151'
+                  }}
+                />
+                <button 
+                  onClick={() => {
+                    const currentText = localStorage.getItem('fubog_pop_texto') || '';
+                    // Update QualidadePage to show this text
+                    const event = new CustomEvent('popUpdated', { detail: currentText });
+                    window.dispatchEvent(event);
+                    alert('POP atualizado com sucesso!');
+                  }}
+                  style={{
+                    marginTop:12, 
+                    padding:'10px 20px', 
+                    borderRadius:8,
+                    background:'#16a34a', 
+                    color:'#fff',
+                    fontSize:13, 
+                    fontWeight:600, 
+                    border:'none', 
+                    cursor:'pointer',
+                    transition:'all 0.2s',
+                    boxShadow:'0 2px 4px rgba(22, 163, 74, 0.2)'
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = '#15803d';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = '#16a34a';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  Publicar POP
+                </button>
+              </div>
+            )}
+
+            {/* Indicators Editor for Quality Team */}
+            {mod.key === "qual" && (
+              <div style={{ marginBottom:24, padding:20, background:'#EFF6FF', border:'1px solid #93C5FD', borderRadius:12 }}>
+                <div style={{ fontWeight:700, fontSize:14, color:'#1d4ed8', marginBottom:12 }}>
+                  📊 Editor de Indicadores — Qualidade
+                </div>
+                <div style={{ fontSize:12, color:'#3b82f6', marginBottom:12 }}>
+                  Atualize os indicadores que aparecem na página inicial de Qualidade.
+                </div>
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))', gap:12 }}>
+                  {indicators.map((ind, i) => (
+                    <div key={i} style={{ background:'#fff', borderRadius:8, padding:12, border:'1px solid #DBEAFE' }}>
+                      <div style={{ fontSize:11, color:'#1d4ed8', fontWeight:600, marginBottom:6 }}>{ind.label}</div>
+                      <input
+                        type="text"
+                        value={ind.value}
+                        onChange={e => {
+                          const updated = [...indicators];
+                          updated[i] = {...updated[i], value: e.target.value};
+                          setIndicators(updated);
+                        }}
+                        style={{ 
+                          width:'100%', 
+                          padding:'8px 10px', 
+                          borderRadius:6, 
+                          border:'1px solid #DBEAFE',
+                          fontSize:14, 
+                          fontWeight:700, 
+                          color:ind.color, 
+                          boxSizing:'border-box',
+                          background:'#fff'
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <button 
+                  onClick={() => {
+                    localStorage.setItem('fubog_indicadores', JSON.stringify(indicators));
+                    // Trigger update for QualidadePage
+                    const event = new CustomEvent('indicatorsUpdated', { detail: indicators });
+                    window.dispatchEvent(event);
+                    alert('Indicadores atualizados com sucesso!');
+                  }}
+                  style={{
+                    marginTop:12, 
+                    padding:'10px 20px', 
+                    borderRadius:8,
+                    background:'#2563eb', 
+                    color:'#fff',
+                    fontSize:13, 
+                    fontWeight:600, 
+                    border:'none', 
+                    cursor:'pointer',
+                    transition:'all 0.2s',
+                    boxShadow:'0 2px 4px rgba(37, 99, 235, 0.2)'
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = '#1d4ed8';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = '#2563eb';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  Salvar Indicadores
+                </button>
+              </div>
+            )}
+            
+            {/* File naming box for RH and Qualidade */}
+            {(mod.key === "rh" || mod.key === "qual") && uploadedFiles.filter(f => f.mod === activeMod && f.status === "done").length > 0 && (
+              <div style={{ marginBottom:20, padding:16, background:'#FEF3C7', border:'1px solid #FCD34D', borderRadius:12 }}>
+                <div style={{ fontWeight:600, fontSize:14, color:'#92400e', marginBottom:10 }}>
+                  📝 Nomear Arquivos para Publicação
+                </div>
+                <div style={{ fontSize:12, color:'#b45309', marginBottom:12 }}>
+                  Atribua nomes personalizados aos arquivos antes de publicar:
+                </div>
+                {uploadedFiles.filter(f => f.mod === activeMod && f.status === "done").map(file => (
+                  <div key={file.id} style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:12, padding:12, background:'#fff', borderRadius:8, border:'1px solid #E5E7EB' }}>
+                    <div style={{ fontSize:12, color:'#374151', fontWeight:600 }}>
+                      {file.file?.name || 'arquivo.pdf'}
+                    </div>
+                    <div style={{ display:'flex', gap:10, alignItems:'center' }}>
+                      <input
+                        type="text"
+                        placeholder="Nome personalizado (opcional)"
+                        defaultValue={fileNames[file.id] || ''}
+                        onChange={e => setFileNames(prev => ({ ...prev, [file.id]: e.target.value }))}
+                        style={{
+                          flex:1,
+                          padding:'6px 10px',
+                          borderRadius:6,
+                          border:'1px solid #D1D5DB',
+                          fontSize:12,
+                          background:'#fff',
+                          color:'#374151'
+                        }}
+                      />
+                      {mod.key === "rh" && (
+                        <select
+                          defaultValue={fileCategories[file.id] || ''}
+                          onChange={e => setFileCategories(prev => ({ ...prev, [file.id]: e.target.value }))}
+                          style={{
+                            padding:'6px 10px',
+                            borderRadius:6,
+                            border:'1px solid #D1D5DB',
+                            fontSize:12,
+                            background:'#fff',
+                            color:'#374151',
+                            minWidth:150
+                          }}
+                        >
+                          <option value="">Selecione categoria</option>
+                          <option value="Escalas">Escalas</option>
+                          <option value="Ações">Ações do Mês</option>
+                          <option value="Treinamentos">Treinamentos</option>
+                          <option value="Contatos">Contatos</option>
+                          <option value="Aniversariantes">Aniversariantes</option>
+                          <option value="Geral">Geral</option>
+                        </select>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            
             <FileUploadZone
               moduleKey={mod.uploadKey}
               uploadedFiles={uploadedFiles.filter(f => f.mod===activeMod)}
@@ -1978,12 +2281,66 @@ function AdminPanel({ navigate }) {
             />
             {doneCt > 0 && (
               <div style={{ marginTop:16, paddingTop:16, borderTop:`1px solid ${T.border}`, display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
-                <button style={{
-                  display:"inline-flex", alignItems:"center", gap:7,
-                  padding:"10px 22px", borderRadius:9,
-                  background:mod.color, color:"#fff",
-                  fontSize:13, fontWeight:600, border:"none", cursor:"pointer",
-                }}>
+                <button 
+                  onClick={() => {
+                    // Actually save files to MOCK_DOCS
+                    const filesToPublish = uploadedFiles.filter(f => f.status === "done" && f.mod === activeMod);
+                    
+                    filesToPublish.forEach(file => {
+                      const customName = fileNames[file.id] || file.file?.name;
+                      const category = fileCategories[file.id] || 'Geral';
+                      const uploadKey = mod.uploadKey; // 'rh' or 'qualidade'
+                      
+                      // Create new document entry
+                      const newDoc = {
+                        id: Date.now() + Math.random(),
+                        name: customName,
+                        cat: category,
+                        size: file.file?.size || 1024,
+                        date: new Date().toLocaleDateString('pt-BR'),
+                        url: null // Regular document for download
+                      };
+                      
+                      // Add to MOCK_DOCS
+                      if (!MOCK_DOCS[uploadKey]) {
+                        MOCK_DOCS[uploadKey] = [];
+                      }
+                      MOCK_DOCS[uploadKey].unshift(newDoc); // Add to beginning of array
+                    });
+                    
+                    console.log('Arquivos publicados em MOCK_DOCS:', MOCK_DOCS);
+                    
+                    // Show success message with custom names and categories
+                    const fileDetails = filesToPublish.map(f => {
+                      const name = fileNames[f.id] || f.file?.name;
+                      const category = fileCategories[f.id] ? ` (${fileCategories[f.id]})` : '';
+                      return `${name}${category}`;
+                    }).join(', ');
+                    alert(`${doneCt} arquivo(s) publicado(s) com sucesso em ${mod.label}!\n\nArquivos: ${fileDetails}\n\nOs documentos agora estão visíveis na página correspondente.`);
+                    
+                    // Clear uploaded files, file names, and categories after publishing
+                    setUploadedFiles(prev => prev.filter(f => !(f.status === "done" && f.mod === activeMod)));
+                    setFileNames(prev => {
+                      const newNames = { ...prev };
+                      filesToPublish.forEach(f => delete newNames[f.id]);
+                      return newNames;
+                    });
+                    setFileCategories(prev => {
+                      const newCategories = { ...prev };
+                      filesToPublish.forEach(f => delete newCategories[f.id]);
+                      return newCategories;
+                    });
+                  }}
+                  style={{
+                    display:"inline-flex", alignItems:"center", gap:7,
+                    padding:"10px 22px", borderRadius:9,
+                    background:mod.color, color:"#fff",
+                    fontSize:13, fontWeight:600, border:"none", cursor:"pointer",
+                    transition:"opacity 0.15s",
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.opacity="0.8"}
+                  onMouseLeave={e => e.currentTarget.style.opacity="1"}
+                >
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12"/>
                   </svg>
@@ -2070,7 +2427,8 @@ function PageView({ pageName, navigate }) {
 // 17. APP ROOT
 // ══════════════════════════════════════════════════════════════
 function MainApp() {
-  const [page, setPage] = useState("home");
+  const initialPage = new URLSearchParams(window.location.search).get("page") || "home";
+  const [page, setPage] = React.useState(initialPage);
   const navigate = (p) => { setPage(p); window.scrollTo({ top:0, behavior:"smooth" }); };
 
   return (

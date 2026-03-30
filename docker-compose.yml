@@ -1,6 +1,24 @@
-version: '3.8'
-
 services:
+  hospital-db:
+    image: postgres:15-alpine
+    container_name: hospital-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres_password
+      - POSTGRES_DB=hospital_db
+    ports:
+      - "3000:3001"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - hospital-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   hospital-api:
     build: ./hospital-api
     container_name: hospital-api
@@ -8,19 +26,21 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3001
-      - DATABASE_URL=file:./dev.db
+      - DATABASE_URL=postgresql://postgres:postgres_password@hospital-db:5432/hospital_db?schema=public
       - UPLOAD_DIR=uploads
       - MAX_FILE_SIZE_MB=20
       - AZURE_TENANT_ID=mock-tenant-id-123
       - AZURE_CLIENT_ID=mock-client-id-456
       - AZURE_AUDIENCE=mock-audience-789
-      - ALLOWED_ORIGIN=http://localhost
+      - ALLOWED_ORIGIN=http://localhost:5173
       - RATE_LIMIT_WINDOW_MS=900000
       - RATE_LIMIT_MAX=200
       - LOG_LEVEL=info
     volumes:
       - ./hospital-api/uploads:/app/uploads
-      - ./hospital-api/prisma:/app/prisma
+    depends_on:
+      hospital-db:
+        condition: service_healthy
     networks:
       - hospital-network
     healthcheck:
@@ -47,5 +67,5 @@ networks:
     driver: bridge
 
 volumes:
+  postgres_data:
   uploads:
-  prisma:
