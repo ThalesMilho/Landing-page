@@ -1,19 +1,24 @@
-import { Router } from 'express';
-import { requireAuth } from '../middleware/auth';
-import { apiLimiter } from '../middleware/rateLimiter';
-import { uploadMiddleware } from '../middleware/upload';
-import { documentController } from '../controllers/documentController';
+import { Router } from "express";
+import multer from "multer";
+
+import { requireAuth } from "../middleware/auth";
+import {
+  downloadDocumentController,
+  listDocumentsController,
+  uploadDocumentController,
+} from "../controllers/documentsController";
 
 const router = Router();
-router.use(apiLimiter);
-router.use(requireAuth);
 
-router.get('/:module', documentController.listByModule);
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 25 * 1024 * 1024,
+  },
+});
 
-router.post('/upload', uploadMiddleware.single('file'), documentController.upload);
-
-router.get('/download/:id', documentController.download);
-
-router.patch('/publish/:id', documentController.publish);
+router.get("/api/v1/documents", requireAuth, listDocumentsController);
+router.post("/api/v1/documents", requireAuth, upload.single("file"), uploadDocumentController);
+router.get("/api/v1/documents/:id/download", requireAuth, downloadDocumentController);
 
 export default router;

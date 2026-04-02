@@ -10,17 +10,53 @@ import { apiLimiter, publicLimiter } from "./middleware/rateLimiter";
 import { requestLogger } from "./middleware/requestLogger";
 import { errorHandler, AppError } from "./middleware/errorHandler";
 import routes from "./routes";
+import { getDb } from "./db/database";
 
 export function buildApp() {
   const app = express();
+
+  getDb();
 
   app.set("trust proxy", 1);
 
   app.use(helmet());
 
+  const normalizeOrigin = (value: string) => value.trim().replace(/\/$/, "").toLowerCase();
+
+  const allowedOrigins = env.ALLOWED_ORIGIN.split(",")
+    .map(normalizeOrigin)
+    .filter(Boolean);
+
   app.use(
     cors({
-      origin: env.ALLOWED_ORIGIN,
+      origin: (origin, cb) => {
+        if (!origin) {
+          cb(null, true);
+          return;
+        }
+
+        const normalizedOrigin = normalizeOrigin(origin);
+
+        if (allowedOrigins.includes("*")) {
+          cb(null, true);
+          return;
+        }
+
+        if (allowedOrigins.includes(normalizedOrigin)) {
+          cb(null, true);
+          return;
+        }
+
+        if (env.NODE_ENV === "development" || env.AUTH_MODE === "mock") {
+          const devAllowedOrigin = /^https?:\/\/(localhost|127\.0\.0\.1|\d{1,3}(?:\.\d{1,3}){3})(:\d+)?$/;
+          if (devAllowedOrigin.test(normalizedOrigin)) {
+            cb(null, true);
+            return;
+          }
+        }
+
+        cb(new AppError(`CORS origin not allowed: ${origin}`, 403));
+      },
       credentials: true,
     }),
   );

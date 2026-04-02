@@ -8,9 +8,14 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3001),
   NODE_ENV: z.enum(["development", "production"]).default("development"),
 
-  AZURE_TENANT_ID: z.string().min(1),
-  AZURE_CLIENT_ID: z.string().min(1),
-  AZURE_AUDIENCE: z.string().min(1),
+  AUTH_MODE: z.enum(["mock", "azure"]).default("mock"),
+
+  DB_PATH: z.string().default("./data/hospital.db"),
+  UPLOAD_DIR: z.string().default("./data/uploads"),
+
+  AZURE_TENANT_ID: z.string().optional().default(""),
+  AZURE_CLIENT_ID: z.string().optional().default(""),
+  AZURE_AUDIENCE: z.string().optional().default(""),
 
   ALLOWED_ORIGIN: z.string().min(1),
 
