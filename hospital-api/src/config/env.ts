@@ -1,39 +1,19 @@
-
 import dotenv from "dotenv";
-import { z } from "zod";
-
 dotenv.config();
 
-const envSchema = z.object({
-  PORT: z.coerce.number().int().positive().default(3001),
-  NODE_ENV: z.enum(["development", "production"]).default("development"),
-
-  AUTH_MODE: z.enum(["mock", "azure"]).default("mock"),
-
-  DB_PATH: z.string().default("./data/hospital.db"),
-  UPLOAD_DIR: z.string().default("./data/uploads"),
-
-  AZURE_TENANT_ID: z.string().optional().default(""),
-  AZURE_CLIENT_ID: z.string().optional().default(""),
-  AZURE_AUDIENCE: z.string().optional().default(""),
-
-  ALLOWED_ORIGIN: z.string().min(1),
-
-  DATABASE_URL: z.string().url({ message: "DATABASE_URL must be a valid URL" }),
-
-  UPLOAD_DIR: z.string().default("uploads"),
-
-  MAX_FILE_SIZE_MB: z
-    .string()
-    .default("20")
-    .transform(Number)
-    .pipe(z.number().positive()),
-
-  RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(15 * 60 * 1000),
-  RATE_LIMIT_MAX: z.coerce.number().int().positive().default(200),
-
-  LOG_LEVEL: z.enum(["trace", "debug", "info", "warn", "error", "fatal"]).default("info"),
-});
-
-export const env = envSchema.parse(process.env);
-
+export const env = {
+  PORT: Number(process.env.PORT) || 3001,
+  NODE_ENV: process.env.NODE_ENV || "development",
+  AUTH_MODE: process.env.AUTH_MODE || "mock",
+  DB_PATH: process.env.DB_PATH || "./data/hospital.db",
+  UPLOAD_DIR: process.env.UPLOAD_DIR || "./data/uploads",
+  AZURE_TENANT_ID: process.env.AZURE_TENANT_ID || "",
+  AZURE_CLIENT_ID: process.env.AZURE_CLIENT_ID || "",
+  AZURE_AUDIENCE: process.env.AZURE_AUDIENCE || "",
+  ALLOWED_ORIGIN: process.env.ALLOWED_ORIGIN || "http://localhost:3000",
+  DATABASE_URL: process.env.DATABASE_URL || "./data/hospital.db",
+  MAX_FILE_SIZE_MB: Number(process.env.MAX_FILE_SIZE_MB) || 20,
+  RATE_LIMIT_WINDOW_MS: Number(process.env.RATE_LIMIT_WINDOW_MS) || 900000,
+  RATE_LIMIT_MAX: Number(process.env.RATE_LIMIT_MAX) || 200,
+  LOG_LEVEL: process.env.LOG_LEVEL || "info",
+};

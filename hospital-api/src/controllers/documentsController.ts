@@ -22,7 +22,7 @@ export const listDocumentsController: RequestHandler = (req: Request, res: Respo
   const moduleKey = parseModuleKey(req.query.module);
   const category = typeof req.query.category === "string" ? req.query.category : undefined;
 
-  const docs = listDocuments({ moduleKey, category });
+  const docs = listDocuments({ moduleKey, ...(category !== undefined && { category }) });
   res.json({ success: true, data: docs });
 };
 

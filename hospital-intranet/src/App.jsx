@@ -1540,32 +1540,23 @@ function DocListItem({ doc, w, onDownload }) {
 // ── Shared module page shell ──────────────────────────────────
 function ModulePage({ navigate, moduleKey, title, icon, accentColor, accentBg, tabs, canEdit }) {
   const { w, isDesktop } = useBreakpoint();
-  const [activeTab, setActiveTab]           = React.useState(tabs[0]?.key);
-  const [uploadedFiles, setUploadedFiles]   = React.useState([]);
-  const [showUpload, setShowUpload]         = React.useState(false);
+  const [activeTab, setActiveTab]         = React.useState(tabs[0]?.key);
+  const [uploadedFiles, setUploadedFiles] = React.useState([]);
+  const [showUpload, setShowUpload]       = React.useState(false);
+  const [allDocs, setAllDocs]             = React.useState([]);
+
+  React.useEffect(() => {
+    fetch(`/api/v1/documents?module=${moduleKey}`)
+      .then(r => r.json())
+      .then(j => setAllDocs(j.data || []))
+      .catch(() => setAllDocs([]));
+  }, [moduleKey]);
 
   const currentTab   = tabs.find(t => t.key === activeTab);
-  const tabDocs      = (MOCK_DOCS[moduleKey] || []).filter(d => !currentTab?.docCat || d.cat === currentTab.docCat);
+  const tabDocs      = allDocs.filter(d => !currentTab?.docCat || d.category === currentTab.docCat);
   const pendingCount = uploadedFiles.filter(f => f.status === "done" && f.tab === activeTab).length;
-  
-  const handleDownload = async (doc) => {
-    try {
-      const dummyContent = `Conteúdo do documento: ${doc.name}\n\nGerado via Intranet.`;
-      const blob = new Blob([dummyContent], { type: 'text/plain' });
-      
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `${doc.name}.txt`); // Em produção, mantenha a extensão original
-      document.body.appendChild(link);
-      link.click();
-      
-      link.parentNode.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Erro ao baixar:", error);
-      alert("Não foi possível baixar o documento no momento.");
-    }
+  const handleDownload = (doc) => {
+    window.open(`/api/v1/documents/${doc.id}/download`, '_blank');
   };
 
   return (
@@ -1773,6 +1764,14 @@ function QualidadePage({ navigate }) {
       {label:'Eventos Adversos', value:'3', color:'#dc2626'}
     ];
   });
+
+  const [qualDocs, setQualDocs] = React.useState([]);
+  React.useEffect(() => {
+    fetch('/api/v1/documents?module=qualidade')
+      .then(r => r.json())
+      .then(j => setQualDocs(j.data || []))
+      .catch(() => setQualDocs([]));
+  }, []);
 
   // Listen for POP updates from admin
   React.useEffect(() => {
@@ -2282,55 +2281,75 @@ function AdminPanel({ navigate }) {
             {doneCt > 0 && (
               <div style={{ marginTop:16, paddingTop:16, borderTop:`1px solid ${T.border}`, display:"flex", alignItems:"center", gap:12, flexWrap:"wrap" }}>
                 <button 
-                  onClick={() => {
-                    // Actually save files to MOCK_DOCS
-                    const filesToPublish = uploadedFiles.filter(f => f.status === "done" && f.mod === activeMod);
-                    
-                    filesToPublish.forEach(file => {
-                      const customName = fileNames[file.id] || file.file?.name;
-                      const category = fileCategories[file.id] || 'Geral';
-                      const uploadKey = mod.uploadKey; // 'rh' or 'qualidade'
-                      
-                      // Create new document entry
-                      const newDoc = {
-                        id: Date.now() + Math.random(),
-                        name: customName,
-                        cat: category,
-                        size: file.file?.size || 1024,
-                        date: new Date().toLocaleDateString('pt-BR'),
-                        url: null // Regular document for download
-                      };
-                      
-                      // Add to MOCK_DOCS
-                      if (!MOCK_DOCS[uploadKey]) {
-                        MOCK_DOCS[uploadKey] = [];
+                  onClick={async () => {
+                    const filesToPublish = uploadedFiles.filter(
+                      (f) => f.status === "done" && f.mod === activeMod
+                    );
+
+                    let successCount = 0;
+                    for (const file of filesToPublish) {
+                      try {
+                        const formData = new FormData();
+
+                        formData.append("file", file.file);
+                        formData.append("moduleKey", mod.uploadKey);
+                        formData.append(
+                          "category",
+                          fileCategories[file.id] || "Geral"
+                        );
+                        formData.append(
+                          "name",
+                          fileNames[file.id] ||
+                            file.file?.name ||
+                            "documento"
+                        );
+                        const res = await fetch("/api/v1/documents", {
+                          method: "POST",
+                          body: formData,
+                        });
+                        if (res.ok) {
+                          successCount++;
+                        } else {
+                          console.error(
+                            "Erro:",
+                            await res.json().catch(() => ({}))
+                          );
+                        }
+                      } catch (e) {
+                        console.error("Fetch falhou:", e);
                       }
-                      MOCK_DOCS[uploadKey].unshift(newDoc); // Add to beginning of array
+                    }
+                    alert(
+                      `${successCount} arquivo(s) publicado(s) com sucesso em ${mod.label}!`
+                    );
+                    setUploadedFiles((prev) =>
+                      prev.filter(
+                        (f) =>
+                          !(
+                            f.status === "done" &&
+                            f.mod === activeMod
+                          )
+                      )
+                    );
+                    setFileNames((prev) => {
+                      const n = { ...prev };
+                      filesToPublish.forEach((f) => {
+                        delete n[f.id];
+                      });
+                      return n;
                     });
-                    
-                    console.log('Arquivos publicados em MOCK_DOCS:', MOCK_DOCS);
-                    
-                    // Show success message with custom names and categories
-                    const fileDetails = filesToPublish.map(f => {
-                      const name = fileNames[f.id] || f.file?.name;
-                      const category = fileCategories[f.id] ? ` (${fileCategories[f.id]})` : '';
-                      return `${name}${category}`;
-                    }).join(', ');
-                    alert(`${doneCt} arquivo(s) publicado(s) com sucesso em ${mod.label}!\n\nArquivos: ${fileDetails}\n\nOs documentos agora estão visíveis na página correspondente.`);
-                    
-                    // Clear uploaded files, file names, and categories after publishing
-                    setUploadedFiles(prev => prev.filter(f => !(f.status === "done" && f.mod === activeMod)));
-                    setFileNames(prev => {
-                      const newNames = { ...prev };
-                      filesToPublish.forEach(f => delete newNames[f.id]);
-                      return newNames;
+                    setFileCategories((prev) => {
+                      const n = { ...prev };
+
+                      filesToPublish.forEach((f) => {
+                        delete n[f.id];
+                      });
+
+                      return n;
                     });
-                    setFileCategories(prev => {
-                      const newCategories = { ...prev };
-                      filesToPublish.forEach(f => delete newCategories[f.id]);
-                      return newCategories;
-                    });
+		console.log('Arquivos publicados em MOCK_DOCS:', MOCK_DOCS);
                   }}
+                    
                   style={{
                     display:"inline-flex", alignItems:"center", gap:7,
                     padding:"10px 22px", borderRadius:9,

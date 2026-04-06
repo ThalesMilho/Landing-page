@@ -6,7 +6,7 @@ import { env } from "../config/env";
 
 let db: Database.Database | null = null;
 
-export function getDb() {
+export function getDb(): any {
   if (db) return db;
 
   const dbPath = path.resolve(env.DB_PATH);
