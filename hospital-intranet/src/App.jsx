@@ -32,6 +32,8 @@ const T = {
 // ══════════════════════════════════════════════════════════════
 // 2. BREAKPOINT HOOK  (JS-driven responsive — no CSS guessing)
 // ══════════════════════════════════════════════════════════════
+import { api } from './api.js';
+
 function useBreakpoint() {
   const getW = () => (typeof window !== "undefined" ? window.innerWidth : 1024);
   const [w, setW] = React.useState(getW);
@@ -294,12 +296,12 @@ function Header({ page, navigate }) {
     { label:"Catálogo de Ramais", external:"/ramais.pdf" },
     { label:"Procedimentos (POPs)", p:"procedimentos" },
   ]},
-  { label:"Canais FUBOG", p:"canais", children:[
-    { label:"Canal de Gente e Gestão", p:"canais" },
-    { label:"Canal NPS", p:"canais" },
+  { label:"Canais FUBOG", children:[
+    { label:"Canal de Gente e Gestão", external: "https://forms.gle/U1mSSJHbrsQFDtqr7" },
+    { label:"Canal NPS", external: "c" },
     { label:"Canal de Compliance", external:"https://docs.google.com/forms/d/e/1FAIpQLSeCFr7s2mJzOa6VII2PqihBuImj1v2dSmBK8EskPYC8AgKuGg/viewform" },
   ]},
-  { label:"Suporte T.I.", p:"suporte", external:"http://2401prd.cloudmv.com.br/soul-mv/?" },
+  { label:"Suporte T.I.", p:"suporte", external:"http://ares/index.php?redirect=%2Ffront%2Fcentral.php?error=3" },
 ];
 
   const h = w < 640 ? 54 : 60;
@@ -677,7 +679,7 @@ function Sidebar() {
   ];
 
   const links = [
-    { label:"Suporte T.I.", url:"http://2401prd.cloudmv.com.br/soul-mv/?" },
+    { label:"Suporte T.I.", url:"http://ares/index.php?redirect=%2Ffront%2Fcentral.php?error=3" },
     { label:"Soul MV",      url:"http://2220prd.cloudmv.com.br/mvautenticador-cas/login?service=http%3A%2F%2F2220prd.cloudmv.com.br%3A80%2Fsoul-mv%2Fcas" },
     { label:"Cartão de Ponto",  url:"https://www.rhid.com.br/v2/" },
   ];
@@ -1395,7 +1397,7 @@ const MOCK_DOCS = {
   ],
 };
 
-export function DocList({ docs, onDownload }) {
+export function DocList({ docs, onDownload, onDelete, canEdit }) {
   const { w } = useBreakpoint();
 
   if (!docs || docs.length === 0) {
@@ -1409,11 +1411,13 @@ export function DocList({ docs, onDownload }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       {docs.map(doc => (
-        <DocListItem 
-          key={doc?.id || Math.random()} 
-          doc={doc} 
-          w={w} 
-          onDownload={onDownload} 
+        <DocListItem
+          key={doc?.id || Math.random()}
+          doc={doc}
+          w={w}
+          onDownload={onDownload}
+          onDelete={onDelete}
+          canEdit={canEdit}
         />
       ))}
     </div>
@@ -1421,15 +1425,18 @@ export function DocList({ docs, onDownload }) {
 }
 
 // ── Individual Document Item ───────────────────────────────────
-function DocListItem({ doc, w, onDownload }) {
+function DocListItem({ doc, w, onDownload, onDelete, canEdit }) {
   // Safe React states for hovers
   const [isButtonHovered, setIsButtonHovered] = React.useState(false);
   const [isTextHovered, setIsTextHovered] = React.useState(false);
+  const [pdfOpen, setPdfOpen] = React.useState(false);
+
   
   const ic = getFileIcon(doc?.name || "");
   const isLink = !!doc?.url;
 
   return (
+  <>
     <div style={{
       background: T.white, borderRadius: 10,
       border: `1px solid ${T.border}`,
@@ -1511,32 +1518,91 @@ function DocListItem({ doc, w, onDownload }) {
           </svg>
           {w >= 480 && "Abrir"}
         </a>
-      ) : (
-        <button 
-          onClick={() => onDownload && onDownload(doc)}
-          onMouseEnter={() => setIsButtonHovered(true)}
-          onMouseLeave={() => setIsButtonHovered(false)}
-          aria-label={`Baixar ${doc?.name || "documento"}`}
-          title="Baixar documento"
-          style={{
-            display: "flex", alignItems: "center", gap: 5,
-            padding: "6px 12px", borderRadius: 7, flexShrink: 0,
-            background: T.blueLight, color: T.blue,
-            border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600,
-            opacity: isButtonHovered ? 0.7 : 1,
-            transition: "opacity 0.15s",
-          }}
-        >
-          {/* Download SVG */}
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
-          </svg>
-          {w >= 480 && "Baixar"}
-        </button>
+     ) : (
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <button
+            onClick={() => setPdfOpen(true)}
+            onMouseEnter={() => setIsButtonHovered(true)}
+            onMouseLeave={() => setIsButtonHovered(false)}
+            title="Visualizar documento"
+            style={{
+              display: "flex", alignItems: "center", gap: 5,
+              padding: "6px 12px", borderRadius: 7, flexShrink: 0,
+              background: T.blueLight, color: T.blue,
+              border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600,
+              opacity: isButtonHovered ? 0.7 : 1,
+              transition: "opacity 0.15s",
+            }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+            {w >= 480 && "Visualizar"}
+          </button>
+          {canEdit && (
+            <button
+              onClick={() => onDownload && onDownload(doc)}
+              onMouseEnter={() => setIsButtonHovered(true)}
+              onMouseLeave={() => setIsButtonHovered(false)}
+              aria-label={`Baixar ${doc?.name || "documento"}`}
+              title="Baixar documento"
+              style={{
+                display: "flex", alignItems: "center", gap: 5,
+                padding: "6px 12px", borderRadius: 7, flexShrink: 0,
+                background: T.blueLight, color: T.blue,
+                border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600,
+                opacity: isButtonHovered ? 0.7 : 1,
+                transition: "opacity 0.15s",
+              }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+              </svg>
+              {w >= 480 && "Baixar"}
+            </button>
+          )}
+
+          {canEdit && (
+            <button
+              onClick={() => onDelete && onDelete(doc.id)}
+              title="Excluir documento"
+              style={{
+                background: "none", border: "none", cursor: "pointer",
+                color: "#ef4444", fontSize: 16, padding: "4px",
+                borderRadius: 6, display: "flex", alignItems: "center",
+              }}
+            >
+              🗑️
+            </button>
+          )}
+        </div>
       )}
     </div>
+    {pdfOpen && (
+      <div onClick={() => setPdfOpen(false)} style={{
+        position:"fixed", inset:0, background:"rgba(0,0,0,0.75)",
+        zIndex:9999, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+      }}>
+        <div onClick={e => e.stopPropagation()} style={{
+          width:"90vw", height:"90vh", background:"#fff", borderRadius:12, overflow:"hidden",
+          display:"flex", flexDirection:"column", boxShadow:"0 20px 60px rgba(0,0,0,0.4)",
+        }}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 16px", borderBottom:"1px solid #e5e7eb", background:"#f9fafb" }}>
+            <span style={{ fontWeight:600, fontSize:14, color:"#111" }}>{doc.name}</span>
+            <button onClick={() => setPdfOpen(false)} style={{ background:"none", border:"none", cursor:"pointer", fontSize:20, color:"#6b7280", lineHeight:1 }}>✕</button>
+          </div>
+          <iframe
+            src={`/api/v1/documents/${doc.id}/view#toolbar=0&navpanes=0&scrollbar=0`}
+            style={{ flex:1, width:"100%", border:"none" }}
+            title={doc.name}
+          />
+        </div>
+      </div>
+    )}
+  </>
   );
 }
+
 // ── Shared module page shell ──────────────────────────────────
 function ModulePage({ navigate, moduleKey, title, icon, accentColor, accentBg, tabs, canEdit }) {
   const { w, isDesktop } = useBreakpoint();
@@ -1544,6 +1610,23 @@ function ModulePage({ navigate, moduleKey, title, icon, accentColor, accentBg, t
   const [uploadedFiles, setUploadedFiles] = React.useState([]);
   const [showUpload, setShowUpload]       = React.useState(false);
   const [allDocs, setAllDocs]             = React.useState([]);
+
+const handleDelete = async (id) => {
+  if (!confirm("Tem certeza que deseja excluir este documento?")) return;
+
+  try {
+    await fetch(`/api/v1/documents/${id}`, {
+      method: "DELETE",
+    });
+
+    // 🔥 atualiza lista sem reload
+    setAllDocs(prev => prev.filter(doc => doc.id !== id));
+
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao excluir documento");
+  }
+};
 
   React.useEffect(() => {
     fetch(`/api/v1/documents?module=${moduleKey}`)
@@ -1694,7 +1777,7 @@ function ModulePage({ navigate, moduleKey, title, icon, accentColor, accentBg, t
               </div>
               {tabs.map(tab => {
                 const active = activeTab === tab.key;
-                const tabCount = (MOCK_DOCS[moduleKey]||[]).filter(d => !tab.docCat || d.cat === tab.docCat).length;
+                const tabCount = allDocs.filter(d => !tab.docCat || d.category === tab.docCat).length;
                 return (
                   <button key={tab.key} onClick={() => { setActiveTab(tab.key); setShowUpload(false); }} style={{
                     display:"flex", alignItems:"center", justifyContent:"space-between",
@@ -1728,7 +1811,12 @@ function ModulePage({ navigate, moduleKey, title, icon, accentColor, accentBg, t
                 <h2 style={{ fontSize:15, fontWeight:700, color:T.dark }}>{currentTab?.label}</h2>
                 <span style={{ fontSize:11, color:T.faint }}>{tabDocs.length} documento{tabDocs.length!==1?"s":""}</span>
               </div>
-              <DocList docs={tabDocs} onDownload={handleDownload} />
+              <DocList 
+  		docs={tabDocs} 
+ 	        onDownload={handleDownload} 
+	        onDelete={handleDelete}
+		canEdit={canEdit}
+              />
             </div>
           </div>
         </div>
@@ -1754,16 +1842,21 @@ function RHPage({ navigate }) {
 
 function QualidadePage({ navigate }) {
   const [tab, setTab] = React.useState('indicadores');
-  const [popText, setPopText] = React.useState(() => localStorage.getItem('fubog_pop_texto') || '');
-  const [indicators, setIndicators] = React.useState(() => {
-    const saved = localStorage.getItem('fubog_indicadores');
-    return saved ? JSON.parse(saved) : [
-      {label:'Taxa de Infecção Hospitalar', value:'2.3%', color:'#16a34a'},
-      {label:'Satisfação do Paciente', value:'94%', color:T.blue},
-      {label:'Tempo Médio de Atendimento', value:'18 min', color:'#d97706'},
-      {label:'Eventos Adversos', value:'3', color:'#dc2626'}
-    ];
-  });
+
+  const [popText, setPopText] = React.useState('');
+  const [indicators, setIndicators] = React.useState([]);
+
+  React.useEffect(() => {
+    api.getIndicators()
+      .then(j => setIndicators(Array.isArray(j.data) ? j.data : []))
+      .catch(() => setIndicators([]));
+    api.getSetting('pop_texto')
+      .then(j => setPopText(j.data || ''))
+      .catch(() => setPopText(''));
+    api.getDocs('qualidade')
+      .then(j => setQualDocs(Array.isArray(j.data) ? j.data : []))
+      .catch(() => setQualDocs([]));
+  }, []);
 
   const [qualDocs, setQualDocs] = React.useState([]);
   React.useEffect(() => {
@@ -1773,44 +1866,7 @@ function QualidadePage({ navigate }) {
       .catch(() => setQualDocs([]));
   }, []);
 
-  // Listen for POP updates from admin
-  React.useEffect(() => {
-    const handlePopUpdate = (e) => {
-      setPopText(e.detail);
-    };
 
-    const handleIndicatorsUpdate = (e) => {
-      setIndicators(e.detail);
-    };
-
-    window.addEventListener('popUpdated', handlePopUpdate);
-    window.addEventListener('indicatorsUpdated', handleIndicatorsUpdate);
-
-    // Also check localStorage periodically
-    const interval = setInterval(() => {
-      const currentPopText = localStorage.getItem('fubog_pop_texto') || '';
-      const currentIndicators = localStorage.getItem('fubog_indicadores');
-      
-      if (currentPopText !== popText) {
-        setPopText(currentPopText);
-      }
-      
-      if (currentIndicators) {
-        try {
-          const parsed = JSON.parse(currentIndicators);
-          setIndicators(parsed);
-        } catch (e) {
-          console.error('Error parsing indicators:', e);
-        }
-      }
-    }, 1000);
-
-    return () => {
-      window.removeEventListener('popUpdated', handlePopUpdate);
-      window.removeEventListener('indicatorsUpdated', handleIndicatorsUpdate);
-      clearInterval(interval);
-    };
-  }, [popText]);
   return (
     <div style={{ maxWidth:900, margin:'0 auto', padding:'32px 16px' }}>
       <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:24 }}>
@@ -1864,7 +1920,7 @@ function QualidadePage({ navigate }) {
       )}
       {tab==='documentos' && (
         <div>
-          <DocList docs={MOCK_DOCS.qualidade || []} onDownload={(doc) => {
+          <DocList docs={qualDocs} canEdit={false} onDownload={(doc) => {
             console.log('Download:', doc);
             alert(`Baixando: ${doc.name}`);
           }}/>
@@ -1897,21 +1953,6 @@ function QualidadeAdminEditor() {
     {label:'Tempo Médio de Atendimento',  value:'18 min',color:'#d97706'},
     {label:'Eventos Adversos',            value:'3',    color:'#dc2626'},
   ];
-  const [inds, setInds] = React.useState(() => JSON.parse(localStorage.getItem('fubog_indicadores') || 'null') || defaultInds);
-  const [pop,  setPop]  = React.useState(() => localStorage.getItem('fubog_pop_texto') || '');
-  const [indSaved, setIndSaved] = React.useState(false);
-  const [popSaved, setPopSaved] = React.useState(false);
-
-  function saveInds() {
-    localStorage.setItem('fubog_indicadores', JSON.stringify(inds));
-    setIndSaved(true);
-    setTimeout(() => setIndSaved(false), 2000);
-  }
-  function savePop() {
-    localStorage.setItem('fubog_pop_texto', pop);
-    setPopSaved(true);
-    setTimeout(() => setPopSaved(false), 2000);
-  }
 
   return (
     <div style={{ marginTop:24, display:'flex', flexDirection:'column', gap:20 }}>
@@ -2006,16 +2047,34 @@ function AdminPanel({ navigate }) {
   const [uploadedFiles, setUploadedFiles] = React.useState([]);
   const [fileNames, setFileNames] = React.useState({}); // Store custom names for files
   const [fileCategories, setFileCategories] = React.useState({}); // Store categories for RH files
-  const [indicators, setIndicators] = React.useState(() => {
-    const saved = localStorage.getItem('fubog_indicadores');
-    return saved ? JSON.parse(saved) : [
-      {label:'Taxa de Infecção Hospitalar', value:'2.3%', color:'#16a34a'},
-      {label:'Satisfação do Paciente', value:'94%', color:'#1a56db'},
-      {label:'Tempo Médio de Atendimento', value:'18 min', color:'#d97706'},
-      {label:'Eventos Adversos', value:'3', color:'#dc2626'}
-    ];
-  });
+  const [adminDocs, setAdminDocs]   = React.useState([]);
+  const [indicators, setIndicators] = React.useState([]);
+  const [adminPop, setAdminPop]     = React.useState('');
+  const [categories, setCategories] = React.useState([]);
+  const [newCatName, setNewCatName] = React.useState('');
+  const [editingCat, setEditingCat] = React.useState(null);
+
   const mod = adminModules.find(m => m.key === activeMod);
+
+  React.useEffect(() => {
+    api.getIndicators()
+      .then(j => setIndicators(Array.isArray(j.data) ? j.data : []))
+      .catch(e => { console.error('indicators:', e); setIndicators([]); });
+    api.getSetting('pop_texto')
+      .then(j => setAdminPop(j.data || ''))
+      .catch(() => setAdminPop(''));
+  }, []);
+
+  React.useEffect(() => {
+    if (!mod) return;
+    api.getDocs(mod.uploadKey)
+      .then(j => setAdminDocs(Array.isArray(j.data) ? j.data : []))
+      .catch(() => setAdminDocs([]));
+    api.getCategories(mod.uploadKey)
+      .then(j => setCategories(Array.isArray(j.data) ? j.data : []))
+      .catch(() => setCategories([]));
+  }, [activeMod]);
+
   const doneCt = uploadedFiles.filter(f => f.status==="done" && f.mod===activeMod).length;
 
   return (
@@ -2077,13 +2136,8 @@ function AdminPanel({ navigate }) {
                 </div>
                 <textarea
                   key={mod.key} // Force re-render when switching modules
-                  defaultValue={localStorage.getItem('fubog_pop_texto') || ''}
-                  onChange={e => {
-                    localStorage.setItem('fubog_pop_texto', e.target.value);
-                    // Trigger update for QualidadePage
-                    const event = new CustomEvent('popUpdated', { detail: e.target.value });
-                    window.dispatchEvent(event);
-                  }}
+                  value={adminPop}
+		  onChange={e => setAdminPop(e.target.value)}
                   rows={8}
                   placeholder="Digite o POP aqui. Use linhas separadas para cada passo."
                   style={{ 
@@ -2101,18 +2155,19 @@ function AdminPanel({ navigate }) {
                     background:'#fff',
                     outline:'none',
                     minHeight:'120px',
-                    display:'block',
+                    display:'block',	
                     color:'#374151'
                   }}
                 />
                 <button 
-                  onClick={() => {
-                    const currentText = localStorage.getItem('fubog_pop_texto') || '';
-                    // Update QualidadePage to show this text
-                    const event = new CustomEvent('popUpdated', { detail: currentText });
-                    window.dispatchEvent(event);
-                    alert('POP atualizado com sucesso!');
-                  }}
+                  onClick={async () => {
+		      try {
+		       await api.putSetting('pop_texto', adminPop);
+  	               alert('POP publicado com sucesso!');
+		  } catch(e) {
+		    alert('Erro: ' + e.message);
+		  }
+		}}
                   style={{
                     marginTop:12, 
                     padding:'10px 20px', 
@@ -2140,76 +2195,185 @@ function AdminPanel({ navigate }) {
               </div>
             )}
 
-            {/* Indicators Editor for Quality Team */}
-            {mod.key === "qual" && (
-              <div style={{ marginBottom:24, padding:20, background:'#EFF6FF', border:'1px solid #93C5FD', borderRadius:12 }}>
-                <div style={{ fontWeight:700, fontSize:14, color:'#1d4ed8', marginBottom:12 }}>
-                  📊 Editor de Indicadores — Qualidade
-                </div>
-                <div style={{ fontSize:12, color:'#3b82f6', marginBottom:12 }}>
-                  Atualize os indicadores que aparecem na página inicial de Qualidade.
-                </div>
-                <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))', gap:12 }}>
-                  {indicators.map((ind, i) => (
-                    <div key={i} style={{ background:'#fff', borderRadius:8, padding:12, border:'1px solid #DBEAFE' }}>
-                      <div style={{ fontSize:11, color:'#1d4ed8', fontWeight:600, marginBottom:6 }}>{ind.label}</div>
-                      <input
-                        type="text"
-                        value={ind.value}
-                        onChange={e => {
-                          const updated = [...indicators];
-                          updated[i] = {...updated[i], value: e.target.value};
-                          setIndicators(updated);
-                        }}
-                        style={{ 
-                          width:'100%', 
-                          padding:'8px 10px', 
-                          borderRadius:6, 
-                          border:'1px solid #DBEAFE',
-                          fontSize:14, 
-                          fontWeight:700, 
-                          color:ind.color, 
-                          boxSizing:'border-box',
-                          background:'#fff'
-                        }}
-                      />
-                    </div>
-                  ))}
-                </div>
-                <button 
-                  onClick={() => {
-                    localStorage.setItem('fubog_indicadores', JSON.stringify(indicators));
-                    // Trigger update for QualidadePage
-                    const event = new CustomEvent('indicatorsUpdated', { detail: indicators });
-                    window.dispatchEvent(event);
-                    alert('Indicadores atualizados com sucesso!');
-                  }}
-                  style={{
-                    marginTop:12, 
-                    padding:'10px 20px', 
-                    borderRadius:8,
-                    background:'#2563eb', 
-                    color:'#fff',
-                    fontSize:13, 
-                    fontWeight:600, 
-                    border:'none', 
-                    cursor:'pointer',
-                    transition:'all 0.2s',
-                    boxShadow:'0 2px 4px rgba(37, 99, 235, 0.2)'
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.background = '#1d4ed8';
-                    e.currentTarget.style.transform = 'translateY(-1px)';
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.background = '#2563eb';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }}
-                >
-                  Salvar Indicadores
+{/* Categories Manager */}
+            <div style={{ marginBottom:24, padding:20, background:'#FAF5FF', border:'1px solid #D8B4FE', borderRadius:12 }}>
+              <div style={{ fontWeight:700, fontSize:14, color:'#7c3aed', marginBottom:12 }}>🗂️ Categorias — {mod.label}</div>
+              <div style={{ display:'flex', gap:8, marginBottom:12 }}>
+                <input
+                  type="text"
+                  placeholder="Nova categoria..."
+                  value={newCatName}
+                  onChange={e => setNewCatName(e.target.value)}
+                  style={{ flex:1, padding:'8px 12px', borderRadius:7, border:'1px solid #D8B4FE', fontSize:13 }}
+                />
+                <button onClick={async () => {
+                  if (!newCatName.trim()) return;
+                  try {
+                    const r = await api.createCategory({ module_key: mod.uploadKey, name: newCatName.trim() });
+                    setCategories(prev => [...prev, r.data]);
+                    setNewCatName('');
+                  } catch(e) { alert('Erro: ' + e.message); }
+                }} style={{ padding:'8px 16px', borderRadius:7, background:'#7c3aed', color:'#fff', border:'none', cursor:'pointer', fontSize:13, fontWeight:600 }}>
+                  + Adicionar
                 </button>
               </div>
-            )}
+              <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                {categories.length === 0 && <div style={{ fontSize:13, color:'#9ca3af' }}>Nenhuma categoria. Adicione acima.</div>}
+                {categories.map(cat => (
+                  <div key={cat.id} style={{ display:'flex', gap:8, alignItems:'center', background:'#fff', padding:'8px 12px', borderRadius:8, border:'1px solid #E9D5FF' }}>
+                    {editingCat?.id === cat.id ? (
+                      <>
+                        <input
+                          type="text"
+                          value={editingCat.name}
+                          onChange={e => setEditingCat(prev => ({ ...prev, name: e.target.value }))}
+                          style={{ flex:1, padding:'6px 10px', borderRadius:6, border:'1px solid #D8B4FE', fontSize:13 }}
+                        />
+                        <button onClick={async () => {
+                          try {
+                            const r = await api.updateCategory(cat.id, { name: editingCat.name });
+                            setCategories(prev => prev.map(c => c.id === cat.id ? r.data : c));
+                            setEditingCat(null);
+                          } catch(e) { alert('Erro: ' + e.message); }
+                        }} style={{ padding:'6px 12px', borderRadius:6, background:'#7c3aed', color:'#fff', border:'none', cursor:'pointer', fontSize:12, fontWeight:600 }}>
+                          Salvar
+                        </button>
+                        <button onClick={() => setEditingCat(null)} style={{ padding:'6px 10px', borderRadius:6, background:'none', border:'1px solid #d1d5db', cursor:'pointer', fontSize:12 }}>
+                          Cancelar
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <span style={{ flex:1, fontSize:13, color:'#374151' }}>{cat.name}</span>
+                        <button onClick={() => setEditingCat(cat)} style={{ padding:'5px 10px', borderRadius:6, background:'none', border:'1px solid #D8B4FE', color:'#7c3aed', cursor:'pointer', fontSize:12 }}>
+                          ✏️ Editar
+                        </button>
+                        <button onClick={async () => {
+                          if (!confirm(`Excluir categoria "${cat.name}"?`)) return;
+                          try {
+                            await api.deleteCategory(cat.id);
+                            setCategories(prev => prev.filter(c => c.id !== cat.id));
+                          } catch(e) { alert('Erro: ' + e.message); }
+                        }} style={{ padding:'5px 10px', borderRadius:6, background:'none', border:'1px solid #fca5a5', color:'#ef4444', cursor:'pointer', fontSize:12 }}>
+                          🗑️
+                        </button>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Indicators Editor for Quality Team */}
+            {mod.key === "qual" && (
+  <div style={{ marginBottom:24, padding:20, background:'#EFF6FF', border:'1px solid #93C5FD', borderRadius:12 }}>
+
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
+      <div style={{ fontWeight:700, fontSize:14, color:'#1d4ed8' }}>
+        📊 Editor de Indicadores — Qualidade
+      </div>
+
+      <button onClick={async () => {
+        try {
+          const created = await api.createIndicator({
+            label: 'Novo Indicador',
+            value: '0',
+            color: '#1a56db'
+          });
+          setIndicators(prev => [...prev, created.data]);
+        } catch(e) {
+          alert('Erro: ' + e.message);
+        }
+      }} style={{
+        padding:'6px 14px',
+        borderRadius:7,
+        background:'#2563eb',
+        color:'#fff',
+        border:'none',
+        cursor:'pointer',
+        fontSize:12,
+        fontWeight:600
+      }}>
+        + Adicionar
+      </button>
+    </div>
+
+    <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+      {(indicators || []).map((ind,i) => (
+        <div key={ind.id || i} style={{
+          background:'#fff',
+          borderRadius:8,
+          padding:12,
+          border:'1px solid #DBEAFE',
+          display:'flex',
+          gap:8,
+          alignItems:'center'
+        }}>
+
+          <input
+            value={ind.label}
+            placeholder="Label"
+            onChange={e => {
+              const u=[...indicators];
+              u[i]={...u[i],label:e.target.value};
+              setIndicators(u);
+            }}
+            style={{ flex:2, padding:'7px 10px', borderRadius:6, border:'1px solid #DBEAFE' }}
+          />
+
+          <input
+            value={ind.value}
+            placeholder="Valor"
+            onChange={e => {
+              const u=[...indicators];
+              u[i]={...u[i],value:e.target.value};
+              setIndicators(u);
+            }}
+            style={{ flex:1, padding:'7px 10px', borderRadius:6, border:'1px solid #DBEAFE' }}
+          />
+
+          <input
+            type="color"
+            value={ind.color || '#1a56db'}
+            onChange={e => {
+              const u=[...indicators];
+              u[i]={...u[i],color:e.target.value};
+              setIndicators(u);
+            }}
+            style={{ width:36, height:34 }}
+          />
+
+          <button onClick={async () => {
+            if (!ind.id) return;
+            try {
+              await api.updateIndicator(ind.id, ind);
+              alert('Salvo!');
+            } catch(e) {
+              alert('Erro: ' + e.message);
+            }
+          }}>
+            💾
+          </button>
+
+          <button onClick={async () => {
+            if (!ind.id) return;
+            if (!confirm('Excluir?')) return;
+            try {
+              await api.deleteIndicator(ind.id);
+              setIndicators(prev => prev.filter(x => x.id !== ind.id));
+            } catch(e) {
+              alert('Erro: ' + e.message);
+            }
+          }}>
+            🗑️
+          </button>
+
+        </div>
+      ))}
+    </div>
+
+  </div>
+)}
             
             {/* File naming box for RH and Qualidade */}
             {(mod.key === "rh" || mod.key === "qual") && uploadedFiles.filter(f => f.mod === activeMod && f.status === "done").length > 0 && (
@@ -2254,14 +2418,12 @@ function AdminPanel({ navigate }) {
                             color:'#374151',
                             minWidth:150
                           }}
-                        >
+
+			>
                           <option value="">Selecione categoria</option>
-                          <option value="Escalas">Escalas</option>
-                          <option value="Ações">Ações do Mês</option>
-                          <option value="Treinamentos">Treinamentos</option>
-                          <option value="Contatos">Contatos</option>
-                          <option value="Aniversariantes">Aniversariantes</option>
-                          <option value="Geral">Geral</option>
+                          {categories.map(c => (
+                            <option key={c.id} value={c.name}>{c.name}</option>
+                          ))}
                         </select>
                       )}
                     </div>
@@ -2347,7 +2509,6 @@ function AdminPanel({ navigate }) {
 
                       return n;
                     });
-		console.log('Arquivos publicados em MOCK_DOCS:', MOCK_DOCS);
                   }}
                     
                   style={{
@@ -2374,7 +2535,13 @@ function AdminPanel({ navigate }) {
               <div style={{ fontSize:13, fontWeight:700, color:T.dark, marginBottom:12 }}>
                 Documentos publicados em {mod.label}
               </div>
-              <DocList docs={MOCK_DOCS[mod.uploadKey] || []} onDownload={handleDownload}/>
+              <DocList docs={adminDocs} onDownload={handleDownload} onDelete={async (id) => {
+                if (!confirm('Excluir este documento?')) return;
+                try {
+                  await api.deleteDoc ? api.deleteDoc(id) : fetch(`/api/v1/documents/${id}`, { method: 'DELETE' });
+                  setAdminDocs(prev => prev.filter(d => d.id !== id));
+                } catch(e) { alert('Erro ao excluir: ' + e.message); }
+              }} canEdit={true}/>
             </div>
           </div>
         )}

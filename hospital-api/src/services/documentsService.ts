@@ -142,3 +142,12 @@ export function getDocumentRow(id: string): DocumentRow {
   if (!row) throw new AppError("Not Found", 404);
   return row;
 }
+
+
+export function deleteDocument(id: string): void {
+  const db = getDb();
+  const row = db.prepare("SELECT * FROM documents WHERE id = ?").get(id) as DocumentRow | undefined;
+  if (!row) throw new AppError("Not Found", 404);
+  try { fs.unlinkSync(row.storage_path); } catch { /* arquivo já não existe no disco */ }
+  db.prepare("DELETE FROM documents WHERE id = ?").run(id);
+}

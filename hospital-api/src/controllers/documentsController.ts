@@ -1,8 +1,10 @@
+import path from "path";
 import type { Request, RequestHandler, Response } from "express";
 import { AppError } from "../middleware/errorHandler";
 import {
   assertCanUpload,
   createDocument,
+  deleteDocument,
   getDocumentRow,
   listDocuments,
   type ModuleKey,
@@ -70,5 +72,22 @@ export const downloadDocumentController: RequestHandler = (req: Request, res: Re
   res.setHeader("Content-Length", String(row.size_bytes));
   res.setHeader("Content-Disposition", `inline; filename*=UTF-8''${encodeURIComponent(row.original_name)}`);
 
-  res.sendFile(row.storage_path);
+  res.sendFile(path.resolve(row.storage_path));
+};
+
+export const deleteDocumentController: RequestHandler = (req: Request, res: Response) => {
+  if (!req.user) throw new AppError("Unauthorized", 401);
+  const id = req.params.id;
+  if (!id) throw new AppError("Bad Request", 400);
+  deleteDocument(id);
+  res.json({ success: true });
+};
+export const viewDocumentController: RequestHandler = (req: Request, res: Response) => {
+  if (!req.user) throw new AppError("Unauthorized", 401);
+  const id = req.params.id;
+  if (!id) throw new AppError("Bad Request", 400);
+  const row = getDocumentRow(id);
+  res.setHeader("Content-Type", row.mime_type);
+  res.setHeader("Content-Disposition", `inline; filename="${row.original_name}"`);
+  res.sendFile(path.resolve(row.storage_path));
 };
