@@ -35,6 +35,9 @@ export const uploadDocumentController: RequestHandler = (req: Request, res: Resp
   const category = typeof req.body.category === "string" && req.body.category.trim() ? req.body.category.trim() : "Geral";
   const displayName =
     typeof req.body.name === "string" && req.body.name.trim() ? req.body.name.trim() : undefined;
+  
+  // Captura o allowDownload vindo do FormData do frontend
+  const allowDownload = req.body.allowDownload === "true";
 
   const file = req.file;
   if (!file) throw new AppError("Missing file", 400);
@@ -44,6 +47,7 @@ export const uploadDocumentController: RequestHandler = (req: Request, res: Resp
   const created = createDocument({
     moduleKey,
     category,
+    allowDownload, // Repassa a permissão para o serviço
     displayName: displayName ?? file.originalname,
     file: {
       originalName: file.originalname,
@@ -68,6 +72,11 @@ export const downloadDocumentController: RequestHandler = (req: Request, res: Re
 
   const row = getDocumentRow(id);
 
+  // Trava de segurança: Se o download não estiver permitido, retorna Erro 403 (Forbidden)
+  if (!row.allowDownload && !row.allow_download) {
+    throw new AppError("Download not allowed for this document", 403);
+  }
+
   res.setHeader("Content-Type", row.mime_type);
   res.setHeader("Content-Length", String(row.size_bytes));
   res.setHeader("Content-Disposition", `inline; filename*=UTF-8''${encodeURIComponent(row.original_name)}`);
@@ -82,6 +91,7 @@ export const deleteDocumentController: RequestHandler = (req: Request, res: Resp
   deleteDocument(id);
   res.json({ success: true });
 };
+
 export const viewDocumentController: RequestHandler = (req: Request, res: Response) => {
   if (!req.user) throw new AppError("Unauthorized", 401);
   const id = req.params.id;

@@ -24,6 +24,8 @@ model Document {
   uploaderEmail String
   uploaderDept  String
 
+  allowDownload Boolean    @default(false)
+
   status        String     @default("PENDING") // "PENDING" | "PUBLISHED" | "ARCHIVED"
   publishedAt   DateTime?
   archivedAt    DateTime?

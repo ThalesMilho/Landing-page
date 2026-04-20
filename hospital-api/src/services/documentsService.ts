@@ -6,7 +6,7 @@ import type { Request } from "express";
 
 import { env } from "../config/env";
 import { AppError } from "../middleware/errorHandler";
-import { getDb, type DocumentRow } from "../db/database";
+import { getDb } from "../db/database";
 
 export type ModuleKey = "rh" | "qualidade" | "suporte";
 
@@ -45,7 +45,7 @@ function ensureUploadDir() {
   return resolved;
 }
 
-function toDto(row: DocumentRow): DocumentDto {
+function toDto(row: any): DocumentDto {
   return {
     id: row.id,
     moduleKey: row.module_key,
@@ -114,7 +114,7 @@ export function createDocument(input: CreateDocumentInput): DocumentDto {
 
   const row = db
     .prepare("SELECT * FROM documents WHERE id = ?")
-    .get(id) as DocumentRow | undefined;
+    .get(id);
 
   if (!row) throw new AppError("Failed to create document", 500);
   return toDto(row);
@@ -131,22 +131,21 @@ export function listDocuments(params: { moduleKey: ModuleKey; category?: string 
         .all(params.moduleKey, params.category)
     : db
         .prepare("SELECT * FROM documents WHERE module_key = ? ORDER BY created_at DESC")
-        .all(params.moduleKey)) as DocumentRow[];
+        .all(params.moduleKey)) as any[];
 
   return rows.map(toDto);
 }
 
-export function getDocumentRow(id: string): DocumentRow {
+export function getDocumentRow(id: string): any {
   const db = getDb();
-  const row = db.prepare("SELECT * FROM documents WHERE id = ?").get(id) as DocumentRow | undefined;
+  const row = db.prepare("SELECT * FROM documents WHERE id = ?").get(id);
   if (!row) throw new AppError("Not Found", 404);
   return row;
 }
 
-
 export function deleteDocument(id: string): void {
   const db = getDb();
-  const row = db.prepare("SELECT * FROM documents WHERE id = ?").get(id) as DocumentRow | undefined;
+  const row = db.prepare("SELECT * FROM documents WHERE id = ?").get(id) as any;
   if (!row) throw new AppError("Not Found", 404);
   try { fs.unlinkSync(row.storage_path); } catch { /* arquivo já não existe no disco */ }
   db.prepare("DELETE FROM documents WHERE id = ?").run(id);
