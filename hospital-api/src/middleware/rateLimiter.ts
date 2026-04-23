@@ -4,21 +4,21 @@ import { env } from "../config/env";
 
 export const publicLimiter = rateLimit({
   windowMs: env.RATE_LIMIT_WINDOW_MS,
-  max: env.RATE_LIMIT_MAX,
+  max: 10000, // Aumentado para desenvolvimento
   standardHeaders: true,
   legacyHeaders: false,
 });
 
 export const apiLimiter = rateLimit({
   windowMs: env.RATE_LIMIT_WINDOW_MS,
-  max: Math.max(50, Math.floor(env.RATE_LIMIT_MAX / 2)),
+  max: 5000, // Aumentado para desenvolvimento
   standardHeaders: true,
   legacyHeaders: false,
 });
 
 export const strictLimiter = rateLimit({
   windowMs: env.RATE_LIMIT_WINDOW_MS,
-  max: 30,
+  max: 1000, // Aumentado para desenvolvimento
   standardHeaders: true,
   legacyHeaders: false,
 });

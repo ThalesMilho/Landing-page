@@ -14,6 +14,7 @@ export type CreateDocumentInput = {
   moduleKey: ModuleKey;
   category: string;
   displayName: string;
+  allowDownload: boolean;
   file: {
     originalName: string;
     mimeType: string;
@@ -90,10 +91,10 @@ export function createDocument(input: CreateDocumentInput): DocumentDto {
   const stmt = db.prepare(`
     INSERT INTO documents (
       id, module_key, category, name, original_name, mime_type, size_bytes,
-      storage_name, storage_path, created_at, created_by_oid, created_by_name
+      storage_name, storage_path, allow_download, created_at, created_by_oid, created_by_name
     ) VALUES (
       @id, @module_key, @category, @name, @original_name, @mime_type, @size_bytes,
-      @storage_name, @storage_path, @created_at, @created_by_oid, @created_by_name
+      @storage_name, @storage_path, @allow_download, @created_at, @created_by_oid, @created_by_name
     )
   `);
 
@@ -107,6 +108,7 @@ export function createDocument(input: CreateDocumentInput): DocumentDto {
     size_bytes: input.file.sizeBytes,
     storage_name: safeStorageName,
     storage_path: storagePath,
+    allow_download: input.allowDownload ? 1 : 0,
     created_at: createdAt,
     created_by_oid: input.createdBy.oid,
     created_by_name: input.createdBy.name,

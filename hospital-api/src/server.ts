@@ -3,13 +3,15 @@ import http from "http";
 import { env } from "./config/env";
 import { logger } from "./config/logger";
 import { buildApp } from "./app";
-import { connectDatabase, disconnectDatabase } from "./config/database";
+import { getDb } from "./db/database"; // Importa o better-sqlite3
 
 const app = buildApp();
 const server = http.createServer(app);
 
 async function bootstrap() {
-  await connectDatabase();
+  // Inicializa o banco de dados better-sqlite3
+  getDb();
+  logger.info("Database connected");
 
   server.listen(env.PORT, () => {
     logger.info({ port: env.PORT }, `Hospital Intranet API running on :${env.PORT}`);

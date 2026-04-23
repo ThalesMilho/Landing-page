@@ -1706,10 +1706,12 @@ function DocListItem({ doc, w, onDownload, onDelete, canEdit }) {
 // ── Shared module page shell ──────────────────────────────────
 function ModulePage({ navigate, moduleKey, title, icon, accentColor, accentBg, tabs, canEdit }) {
   const { w, isDesktop } = useBreakpoint();
-  const [activeTab, setActiveTab]         = React.useState(tabs[0]?.key);
+  const [activeTab, setActiveTab]         = React.useState('');
   const [uploadedFiles, setUploadedFiles] = React.useState([]);
   const [showUpload, setShowUpload]       = React.useState(false);
   const [allDocs, setAllDocs]             = React.useState([]);
+  const [categories, setCategories]       = React.useState([]);
+  const [allowDownload, setAllowDownload] = React.useState(false);
 
 const handleDelete = async (id) => {
   if (!confirm("Tem certeza que deseja excluir este documento?")) return;
@@ -1731,12 +1733,38 @@ const handleDelete = async (id) => {
   React.useEffect(() => {
     fetch(`/api/v1/documents?module=${moduleKey}`)
       .then(r => r.json())
-      .then(j => setAllDocs(j.data || []))
+      .then(j => {
+        console.log('Documentos carregados:', j.data);
+        setAllDocs(j.data || []);
+      })
       .catch(() => setAllDocs([]));
   }, [moduleKey]);
 
-  const currentTab   = tabs.find(t => t.key === activeTab);
-  const tabDocs      = allDocs.filter(d => !currentTab?.docCat || d.category === currentTab.docCat);
+  React.useEffect(() => {
+    fetch(`/api/v1/categories?module=${moduleKey}`)
+      .then(r => r.json())
+      .then(j => {
+        const cats = j.data || [];
+        console.log('Categorias carregadas:', cats);
+        setCategories(cats);
+        if (cats.length > 0 && !activeTab) {
+          setActiveTab(cats[0].name);
+        }
+      })
+      .catch(() => {
+        setCategories([]);
+        // Fallback para categoria padrão
+        if (!activeTab) {
+          setActiveTab('Escalas');
+        }
+      });
+  }, [moduleKey]);
+
+  const currentCategory = categories.find(c => c.name === activeTab);
+  const tabDocs      = allDocs.filter(d => !currentCategory || d.category === currentCategory.name);
+  
+  // Debug logs
+  console.log('Estado atual:', { activeTab, currentCategory, totalDocs: allDocs.length, filteredDocs: tabDocs.length });
   const pendingCount = uploadedFiles.filter(f => f.status === "done" && f.tab === activeTab).length;
   const handleDownload = (doc) => {
     window.open(`/api/v1/documents/${doc.id}/download`, '_blank');
@@ -1823,7 +1851,7 @@ const handleDelete = async (id) => {
                 background:accentColor, flexShrink:0,
               }}/>
               <span style={{ fontSize:13, fontWeight:700, color:T.dark }}>
-                Publicar em: <span style={{ color:accentColor }}>{currentTab?.label}</span>
+                Publicar em: <span style={{ color:accentColor }}>{currentCategory?.name || activeTab}</span>
               </span>
               <span style={{ fontSize:11, color:T.muted, marginLeft:4 }}>
                 · Assinado como {CURRENT_USER.displayName}
@@ -1864,7 +1892,48 @@ const handleDelete = async (id) => {
                 }}
                   onMouseEnter={e => e.currentTarget.style.opacity="0.8"}
                   onMouseLeave={e => e.currentTarget.style.opacity="1"}
-                  onClick={() => setShowUpload(false)}
+                  onClick={async () => {
+                    const filesToPublish = uploadedFiles.filter(f => f.status === "done" && f.tab === activeTab);
+                    
+                    let successCount = 0;
+                    for (const file of filesToPublish) {
+                      try {
+                        const formData = new FormData();
+                        formData.append("file", file.file);
+                        formData.append("moduleKey", moduleKey);
+                        formData.append("category", activeTab);
+                        formData.append("name", file.file?.name || "documento");
+                        formData.append("allowDownload", String(allowDownload));
+                        
+                        const res = await fetch("/api/v1/documents", {
+                          method: "POST",
+                          body: formData,
+                        });
+                        
+                        if (res.ok) {
+                          successCount++;
+                        } else {
+                          console.error("Erro ao publicar:", await res.json().catch(() => ({})));
+                        }
+                      } catch (e) {
+                        console.error("Fetch falhou:", e);
+                      }
+                    }
+                    
+                    if (successCount > 0) {
+                      alert(`${successCount} documento(s) publicado(s) com sucesso!`);
+                      // Limpar arquivos publicados
+                      setUploadedFiles(prev => prev.filter(f => !(f.status === "done" && f.tab === activeTab)));
+                      // Recarregar documentos
+                      fetch(`/api/v1/documents?module=${moduleKey}`)
+                        .then(r => r.json())
+                        .then(j => setAllDocs(j.data || []))
+                        .catch(() => setAllDocs([]));
+                      setShowUpload(false);
+                    } else {
+                      alert("Falha ao publicar documentos.");
+                    }
+                  }}
                 >
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12"/>
@@ -1889,11 +1958,11 @@ const handleDelete = async (id) => {
               <div style={{ padding:"10px 12px 6px", fontSize:10, fontWeight:700, letterSpacing:"0.1em", textTransform:"uppercase", color:T.faint }}>
                 Categorias
               </div>
-              {tabs.map(tab => {
-                const active = activeTab === tab.key;
-                const tabCount = allDocs.filter(d => !tab.docCat || d.category === tab.docCat).length;
+              {categories.map(cat => {
+                const active = activeTab === cat.name;
+                const catCount = allDocs.filter(d => d.category === cat.name).length;
                 return (
-                  <button key={tab.key} onClick={() => { setActiveTab(tab.key); setShowUpload(false); }} style={{
+                  <button key={cat.id} onClick={() => { setActiveTab(cat.name); setShowUpload(false); }} style={{
                     display:"flex", alignItems:"center", justifyContent:"space-between",
                     width:"100%", padding:"11px 14px",
                     background: active ? accentBg : "none",
@@ -1902,16 +1971,18 @@ const handleDelete = async (id) => {
                     transition:"all 0.15s",
                   }}>
                     <div style={{ display:"flex", alignItems:"center", gap:9 }}>
-                      <span style={{ color: active ? accentColor : T.muted, display:"flex", flexShrink:0 }}>{tab.icon}</span>
+                      <span style={{ color: active ? accentColor : T.muted, display:"flex", flexShrink:0 }}>📁</span>
                       <span style={{ fontSize:13, fontWeight: active ? 600 : 500, color: active ? accentColor : T.mid }}>
-                        {tab.label}
+                        {cat.name}
                       </span>
                     </div>
                     <span style={{
                       fontSize:10, fontWeight:700, padding:"1px 6px", borderRadius:10,
                       background: active ? accentColor+"22" : T.borderLight,
-                      color: active ? accentColor : T.faint,
-                    }}>{tabCount}</span>
+                      color: active ? accentColor : T.muted,
+                    }}>
+                      {catCount}
+                    </span>
                   </button>
                 );
               })}
@@ -1922,7 +1993,7 @@ const handleDelete = async (id) => {
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ background:T.white, borderRadius:12, border:`1px solid ${T.border}`, padding: w<480?"16px":"22px", boxShadow:"0 1px 3px rgba(0,0,0,0.04)" }}>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:14 }}>
-                <h2 style={{ fontSize:15, fontWeight:700, color:T.dark }}>{currentTab?.label}</h2>
+                <h2 style={{ fontSize:15, fontWeight:700, color:T.dark }}>{currentCategory?.name || activeTab}</h2>
                 <span style={{ fontSize:11, color:T.faint }}>{tabDocs.length} documento{tabDocs.length!==1?"s":""}</span>
               </div>
               <DocList 

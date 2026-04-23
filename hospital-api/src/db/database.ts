@@ -55,6 +55,16 @@ export function getDb(): any {
       ON documents(module_key, category, created_at DESC);
   `);
 
+  // Tentar adicionar coluna allow_download (pode falhar se já existir)
+  try {
+    db.exec("ALTER TABLE documents ADD COLUMN allow_download INTEGER NOT NULL DEFAULT 0");
+  } catch (err: any) {
+    // Coluna já existe, ignorar erro
+    if (!err.message.includes('duplicate column name')) {
+      console.warn('Warning adding allow_download column:', err.message);
+    }
+  }
+
   const count = (db.prepare("SELECT COUNT(*) as c FROM indicators").get() as any).c;
 
   if (count === 0) {
@@ -97,6 +107,7 @@ export type DocumentRow = {
   size_bytes: number;
   storage_name: string;
   storage_path: string;
+  allow_download: number;
   created_at: string;
   created_by_oid: string;
   created_by_name: string;
