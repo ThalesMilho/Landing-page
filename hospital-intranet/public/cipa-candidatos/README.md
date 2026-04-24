@@ -10,6 +10,9 @@ Este diretório contém as imagens dos candidatos da CIPA. Para substituir os pl
 4. **jack_1.png** - Jakeline de Sá Ferreira (Aux. de Higienização Hospitalar)
 5. **lauro.png** - Lauro Pereira dos Santos (Jardineiro)
 6. **vanessa.png** - Vanessa José da Silva (Coordenadora de Atendimento)
+7. **grazi.jpeg** - Grazi (Administrativo)
+8. **candidato-8.jpeg** - Janaina (Banco de Olhos)
+9. **candidato-9.jpeg** - Carlos Henrique (Recepção)
 
 ## Como substituir:
 

@@ -808,6 +808,24 @@ function Home({ navigate }) {
       cargo: "Coordenadora de Atendimento", 
       departamento: "Atendimento",
       imagem: "/cipa-candidatos/vanessa.png"
+    },
+    { 
+      nome: "Grazi", 
+      cargo: "Administrativo", 
+      departamento: "Administração",
+      imagem: "/cipa-candidatos/grazi.jpeg"
+    },
+    { 
+      nome: "Janaina", 
+      cargo: "Banco de Olhos", 
+      departamento: "Banco de Olhos",
+      imagem: "/cipa-candidatos/candidato-8.jpeg"
+    },
+    { 
+      nome: "Carlos Henrique", 
+      cargo: "Recepção", 
+      departamento: "Recepção",
+      imagem: "/cipa-candidatos/candidato-9.jpeg"
     }
   ];
   // ---------------------------------
