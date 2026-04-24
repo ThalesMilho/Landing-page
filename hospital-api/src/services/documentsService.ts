@@ -37,6 +37,7 @@ export type DocumentDto = {
   sizeBytes: number;
   createdAt: string;
   createdByName: string;
+  allowDownload: boolean;
   downloadUrl: string;
 };
 
@@ -57,6 +58,7 @@ function toDto(row: any): DocumentDto {
     sizeBytes: row.size_bytes,
     createdAt: row.created_at,
     createdByName: row.created_by_name,
+    allowDownload: Boolean(row.allow_download),
     downloadUrl: `/api/v1/documents/${row.id}/download`,
   };
 }

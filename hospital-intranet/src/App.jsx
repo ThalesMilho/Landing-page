@@ -298,7 +298,7 @@ function Header({ page, navigate }) {
   ]},
   { label:"Canais FUBOG", children:[
     { label:"Canal de Gente e Gestão", external: "https://forms.gle/U1mSSJHbrsQFDtqr7" },
-    { label:"Canal NPS", external: "c" },
+    { label:"Canal NPS", external: "https://docs.google.com/forms/d/e/1FAIpQLSf_v7Po6iBEqKX35hoQGvUMWDXbcaF7djnA6tQPaNaoCaKLtQ/viewform" },
     { label:"Canal de Compliance", external:"https://docs.google.com/forms/d/e/1FAIpQLSeCFr7s2mJzOa6VII2PqihBuImj1v2dSmBK8EskPYC8AgKuGg/viewform" },
   ]},
   { label:"Suporte T.I.", p:"suporte", external:"http://ares/index.php?redirect=%2Ffront%2Fcentral.php?error=3" },
@@ -1639,7 +1639,7 @@ function DocListItem({ doc, w, onDownload, onDelete, canEdit }) {
             </svg>
             {w >= 480 && "Visualizar"}
           </button>
-          {canEdit && (
+          {doc?.allowDownload !== false && (
             <button
               onClick={() => onDownload && onDownload(doc)}
               onMouseEnter={() => setIsButtonHovered(true)}
