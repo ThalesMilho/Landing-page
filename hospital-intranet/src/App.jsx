@@ -770,11 +770,6 @@ const CARDS = [
 // 15. HOME PAGE
 // ══════════════════════════════════════════════════════════════
 function Home({ navigate }) {
-// --- ESTADO PARA O "LEIA MAIS" ---
-  const [expandido, setExpandido] = React.useState({});
-  const toggleExpandir = (index) => {
-    setExpandido(prev => ({ ...prev, [index]: !prev[index] }));
-  };
 
   // --- DADOS COMPLETOS DA CIPA ---
   const candidatosCipa = [
@@ -782,37 +777,37 @@ function Home({ navigate }) {
       nome: "Alison Correia Silva", 
       cargo: "Coordenador de RH", 
       departamento: "Gente e Gestão",
-      proposta: "Meu nome é Alison, sou formado em Pedagogia, com Pós graduação em Gestão Hospitalar, Especialista em Administração de Pessoal, Legislação Trabalhista e e-Social, e em Business Partner. Possuo mais de 10 anos de experiência na área de pessoas e quase 2 anos atuando na FUBOG, cuidando dos departamentos de RH, DP e SESMT.\n\nA área hospitalar possui muitos desafios e entre eles está o cuidar do ambiente em que estamos inseridos e ficamos mais tempo do nosso dia-a-dia. No ano passado (2025) fui convidado para dar continuidade a programação da CIPA (2025/2026), onde começamos a caminhar alguns projetos de melhorias internas.\n\nPara a CIPA (2026/2027) minha proposta é darmos continuidade aos projetos que visam a segurança de todos na instituição, como também, a promoção de melhorias preventivas e ações para assegurarmos o cuidado e segurança."
+      imagem: "/cipa-candidatos/alison.png"
     },
     { 
       nome: "Andressa Macedo do Carmo Nascimento", 
       cargo: "Analista de Prestação de Contas", 
       departamento: "Prestação de Contas",
-      proposta: "Meu nome é Andressa Macedo, sou formada em Administração, pós-graduada em Gestão de Pessoas e possuo mais de 10 anos de experiência na área, atuando com responsabilidade, organização e foco em resultados. Atualmente, integro o setor de Prestação de Contas, onde desenvolvo meu trabalho com atenção, compromisso e respeito às normas. Coloco meu nome à disposição para a CIPA com o propósito de atuar de forma ativa na prevenção de acidentes e na promoção da saúde e segurança de todos. Acredito que um ambiente seguro se constrói com diálogo, responsabilidade e atitude."
+      imagem: "/cipa-candidatos/andresa.png"
     },
     { 
       nome: "Jennifer R. C. Magalhães", 
       cargo: "Assistente Administrativo", 
       departamento: "Manutenção",
-      proposta: "Sou uma pessoa responsável, dedicada e que gosta de ajudar o próximo. Procuro sempre manter um bom relacionamento com todos e contribuir para um ambiente de trabalho mais leve e organizado. Quero participar de forma ativa, ajudando com ideias, atitudes, ouvindo os colegas e contribuindo para um ambiente mais seguro, organizado, e melhor para todos."
+      imagem: "/cipa-candidatos/Jenifer.png"
     },
     { 
       nome: "Jakeline de Sá Ferreira", 
       cargo: "Aux. de Higienização Hospitalar", 
       departamento: "Facilities",
-      proposta: "Sou uma pessoa responsável, comprometida e atenta às necessidades do ambiente de trabalho. Tenho facilidade em me comunicar, gosto de trabalhar em equipe e estou sempre disposta a aprender e contribuir de forma positiva. Prezo pela segurança, bem-estar e respeito entre todos, buscando sempre agir com empatia e consciência no dia a dia. Acredito que um ambiente seguro depende da colaboração de todos, e quero fazer parte disso, ajudando a prevenir riscos promovendo melhorias."
+      imagem: "/cipa-candidatos/jack_1.png"
     },
     { 
       nome: "Lauro Pereira dos Santos", 
       cargo: "Jardineiro", 
       departamento: "Manutenção",
-      proposta: "Como profissional, sou pontual, correspondo bem com a necessidade do cargo, sempre buscando crescimento. Como candidato à CIPA, pretendo melhorar a manutenção da área externa, jardim e outros espaços comuns para garantir a segurança e o bem-estar de todos que circulam pela fundação."
+      imagem: "/cipa-candidatos/lauro.png"
     },
     { 
       nome: "Vanessa José da Silva", 
       cargo: "Coordenadora de Atendimento", 
       departamento: "Atendimento",
-      proposta: "Há 3 anos faço parte da família FUBOG, iniciei na Ouvidoria, onde aprendi a transformar a escuta em melhorias. Hoje, como Coordenadora de Atendimento, trabalho para garantir um atendimento humano, ágil e acolhedor. Sou casada, amo pets, café e viajar, e acredito que cuidar de pessoas começa unindo equipe e processos. Trabalhar no hospital é cuidar de pessoas pacientes e equipe. No meu trabalho, prezo pelos detalhes, pela organização e pelo cuidado com o próximo. É com esse olhar que quero contribuir na CIPA: prevenindo riscos, incentivando boas práticas e tornando nosso ambiente cada vez mais leve, seguro e humano."
+      imagem: "/cipa-candidatos/vanessa.png"
     }
   ];
   // ---------------------------------
@@ -881,46 +876,54 @@ function Home({ navigate }) {
           <p style={{ margin: "4px 0 0 0", fontSize: 13, opacity: 0.9 }}>Conheça os candidatos e suas propostas para a nossa segurança!</p>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 16, padding: 20 }}>
-          {candidatosCipa.map((candidato, index) => {
-            const limite = 150;
-            const textoLongo = candidato.proposta.length > limite;
-            const mostrarTudo = expandido[index];
-            const textoExibido = (textoLongo && !mostrarTudo) 
-              ? candidato.proposta.substring(0, limite) + "..." 
-              : candidato.proposta;
-
-            return (
-              <div key={index} style={{
-                background: T.blueLight, padding: 16, borderRadius: 10,
-                border: "1px solid #dbeafe", display: "flex", flexDirection: "column", gap: 10
+        <div style={{ 
+                display: "grid", 
+                gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)", 
+                gap: isMobile ? 16 : 24, 
+                padding: isMobile ? 16 : 24 
               }}>
-                <div style={{ borderBottom: `1px solid #d1e1f5`, paddingBottom: 8 }}>
-                  <h3 style={{ margin: 0, color: T.blueDark, fontSize: 16, fontWeight: 700 }}>{candidato.nome}</h3>
-                  <p style={{ margin: "2px 0 0 0", fontSize: 12, fontWeight: 600, color: T.dark }}>{candidato.cargo}</p>
-                  <p style={{ margin: 0, fontSize: 11, color: T.muted }}>Setor: {candidato.departamento}</p>
-                </div>
+          {candidatosCipa.map((candidato, index) => (
+            <div key={index} style={{
+              background: T.blueLight, padding: 16, borderRadius: 10,
+              border: "1px solid #dbeafe", display: "flex", flexDirection: "column", gap: 10
+            }}>
+              <div style={{ borderBottom: `1px solid #d1e1f5`, paddingBottom: 8 }}>
+                <h3 style={{ margin: 0, color: T.blueDark, fontSize: 16, fontWeight: 700 }}>{candidato.nome}</h3>
+                <p style={{ margin: "2px 0 0 0", fontSize: 12, fontWeight: 600, color: T.dark }}>{candidato.cargo}</p>
+                <p style={{ margin: 0, fontSize: 11, color: T.muted }}>Setor: {candidato.departamento}</p>
+              </div>
+              <div style={{
+                background: T.white, borderRadius: 8, border: `1px solid ${T.border}`,
+                padding: 20, display: "flex", justifyContent: "center", alignItems: "center",
+                flex: 1, minHeight: isMobile ? 500 : 700, overflow: "hidden"
+              }}>
+                <img 
+                  src={candidato.imagem} 
+                  alt={`Proposta de ${candidato.nome}`}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "contain",
+                    borderRadius: 6,
+                    transform: "scale(1.1)"
+                  }}
+                  onError={(e) => {
+                    e.target.style.display = "none";
+                    e.target.nextSibling.style.display = "block";
+                  }}
+                />
                 <div style={{
-                  margin: "0", fontSize: 13, color: T.mid, lineHeight: 1.6,
-                  background: T.white, padding: 12, borderRadius: 8, border: `1px solid ${T.border}`,
-                  whiteSpace: "pre-wrap", flex: 1
+                  display: "none",
+                  padding: 20,
+                  textAlign: "center",
+                  color: T.muted,
+                  fontSize: 13
                 }}>
-                  {textoExibido}
-                  {textoLongo && (
-                    <button 
-                      onClick={() => toggleExpandir(index)}
-                      style={{ 
-                        color: T.blue, fontWeight: 700, fontSize: 12, marginLeft: 6,
-                        border: 'none', background: 'none', cursor: 'pointer', padding: 0 
-                      }}
-                    >
-                      {mostrarTudo ? "Ler menos" : "Leia mais"}
-                    </button>
-                  )}
+                  Imagem não disponível
                 </div>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       </div>
       {/* --- SEÇÃO TEMPORÁRIA CIPA FIM --- */}
