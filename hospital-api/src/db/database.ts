@@ -15,6 +15,7 @@ export function getDb(): any {
 
   db = new Database(dbPath);
   db.pragma("journal_mode = WAL");
+  db.pragma("wal_checkpoint(TRUNCATE)");
 
   db.exec(`
     CREATE TABLE IF NOT EXISTS documents (
@@ -121,3 +122,12 @@ export type IndicatorRow = {
   sort_order: number;
   updated_at: string;
 };
+
+
+export function disconnectDatabase(): void {
+  if (db) {
+    db.pragma("wal_checkpoint(TRUNCATE)");
+    db.close();
+    db = null;
+  }
+}
