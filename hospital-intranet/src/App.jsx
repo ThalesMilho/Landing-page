@@ -771,65 +771,7 @@ const CARDS = [
 // ══════════════════════════════════════════════════════════════
 function Home({ navigate }) {
 
-  // --- DADOS COMPLETOS DA CIPA ---
-  const candidatosCipa = [
-    { 
-      nome: "Alison Correia Silva", 
-      cargo: "Coordenador de RH", 
-      departamento: "Gente e Gestão",
-      imagem: "/cipa-candidatos/alison.png"
-    },
-    { 
-      nome: "Andressa Macedo do Carmo Nascimento", 
-      cargo: "Analista de Prestação de Contas", 
-      departamento: "Prestação de Contas",
-      imagem: "/cipa-candidatos/andresa.png"
-    },
-    { 
-      nome: "Jennifer R. C. Magalhães", 
-      cargo: "Assistente Administrativo", 
-      departamento: "Manutenção",
-      imagem: "/cipa-candidatos/Jenifer.png"
-    },
-    { 
-      nome: "Jakeline de Sá Ferreira", 
-      cargo: "Aux. de Higienização Hospitalar", 
-      departamento: "Facilities",
-      imagem: "/cipa-candidatos/jack_1.png"
-    },
-    { 
-      nome: "Lauro Pereira dos Santos", 
-      cargo: "Jardineiro", 
-      departamento: "Manutenção",
-      imagem: "/cipa-candidatos/lauro.png"
-    },
-    { 
-      nome: "Vanessa José da Silva", 
-      cargo: "Coordenadora de Atendimento", 
-      departamento: "Atendimento",
-      imagem: "/cipa-candidatos/vanessa.png"
-    },
-    { 
-      nome: "Grazi", 
-      cargo: "Administrativo", 
-      departamento: "Administração",
-      imagem: "/cipa-candidatos/grazi.jpeg"
-    },
-    { 
-      nome: "Janaina", 
-      cargo: "Banco de Olhos", 
-      departamento: "Banco de Olhos",
-      imagem: "/cipa-candidatos/candidato-8.jpeg"
-    },
-    { 
-      nome: "Carlos Henrique", 
-      cargo: "Recepção", 
-      departamento: "Recepção",
-      imagem: "/cipa-candidatos/candidato-9.jpeg"
-    }
-  ];
-  // ---------------------------------
-  const user = CURRENT_USER;
+    const user = CURRENT_USER;
   const { isMobile, isDesktop, w } = useBreakpoint();
 
   const hour = new Date().getHours();
@@ -884,67 +826,6 @@ function Home({ navigate }) {
           <SearchBar/>
         </div>
       </div>
-{/* --- SEÇÃO TEMPORÁRIA CIPA INÍCIO --- */}
-      <div style={{
-        background: T.white, borderRadius: 12, border: `1px solid ${T.border}`,
-        boxShadow: "0 1px 3px rgba(0,0,0,0.05)", overflow: "hidden", marginBottom: 28
-      }}>
-        <div style={{ background: T.blue, color: T.white, padding: "16px 20px", textAlign: "center" }}>
-          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, letterSpacing: "-0.02em" }}>📢 Eleições CIPA FUBOG (2026/2027)</h2>
-          <p style={{ margin: "4px 0 0 0", fontSize: 13, opacity: 0.9 }}>Conheça os candidatos e suas propostas para a nossa segurança!</p>
-        </div>
-
-        <div style={{ 
-                display: "grid", 
-                gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)", 
-                gap: isMobile ? 16 : 24, 
-                padding: isMobile ? 16 : 24 
-              }}>
-          {candidatosCipa.map((candidato, index) => (
-            <div key={index} style={{
-              background: T.blueLight, padding: 16, borderRadius: 10,
-              border: "1px solid #dbeafe", display: "flex", flexDirection: "column", gap: 10
-            }}>
-              <div style={{ borderBottom: `1px solid #d1e1f5`, paddingBottom: 8 }}>
-                <h3 style={{ margin: 0, color: T.blueDark, fontSize: 16, fontWeight: 700 }}>{candidato.nome}</h3>
-                <p style={{ margin: "2px 0 0 0", fontSize: 12, fontWeight: 600, color: T.dark }}>{candidato.cargo}</p>
-                <p style={{ margin: 0, fontSize: 11, color: T.muted }}>Setor: {candidato.departamento}</p>
-              </div>
-              <div style={{
-                background: T.white, borderRadius: 8, border: `1px solid ${T.border}`,
-                padding: 20, display: "flex", justifyContent: "center", alignItems: "center",
-                flex: 1, minHeight: isMobile ? 500 : 700, overflow: "hidden"
-              }}>
-                <img 
-                  src={candidato.imagem} 
-                  alt={`Proposta de ${candidato.nome}`}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "contain",
-                    borderRadius: 6,
-                    transform: "scale(1.1)"
-                  }}
-                  onError={(e) => {
-                    e.target.style.display = "none";
-                    e.target.nextSibling.style.display = "block";
-                  }}
-                />
-                <div style={{
-                  display: "none",
-                  padding: 20,
-                  textAlign: "center",
-                  color: T.muted,
-                  fontSize: 13
-                }}>
-                  Imagem não disponível
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-      {/* --- SEÇÃO TEMPORÁRIA CIPA FIM --- */}
 
       {/* ── MAIN CONTENT + SIDEBAR ── */}
       <div style={{
